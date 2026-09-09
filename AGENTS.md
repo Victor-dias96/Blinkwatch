@@ -34,6 +34,7 @@ Most product functionality is **planned and not yet implemented**. Work incremen
 - Minimal home page at `src/app/page.tsx`
 - Root layout with metadata at `src/app/layout.tsx`
 - Shared utility re-export at `src/shared/lib/utils.ts` (`cn` from the `cn` package)
+- Typed environment modules at `src/shared/config/env/` (`clientEnv`, `serverEnv`) with Zod validation
 - Test directory placeholder documented in [`tests/README.md`](tests/README.md)
 
 ### Not implemented yet
@@ -172,6 +173,12 @@ shared → (no feature-specific imports)
 - Use `@ts-expect-error` only when failure is intentional and explained inline.
 - Avoid unnecessary client components; default to Server Components.
 - Add `"use client"` only when browser APIs, state, effects, or event handlers require it.
+- Use typed environment modules (`@/shared/config/env/client`, `@/shared/config/env/server`) instead of direct application access to `process.env`.
+- Public variables require the `NEXT_PUBLIC_` prefix; those values are not secret and are embedded at build time.
+- Secrets must remain server-only and must never use the `NEXT_PUBLIC_` prefix.
+- Update `.env.example` when introducing a real environment variable; never create placeholder variables for future work.
+- Never log environment values.
+- Stop if a task requests exposing camera or facial data through environment configuration.
 
 ### shadcn/ui aliases (from `components.json`)
 

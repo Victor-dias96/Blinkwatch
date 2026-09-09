@@ -48,6 +48,8 @@ A estrutura física do repositório cresce de forma **incremental**: diretórios
 npm install
 ```
 
+O projeto **não exige credenciais externas** neste estágio. Valores locais opcionais devem ficar em `.env.local` (não versionado). O arquivo [`.env.example`](.env.example) documenta o formato das variáveis disponíveis. Instruções detalhadas estão em [`docs/development/environment-variables.md`](docs/development/environment-variables.md).
+
 ## Desenvolvimento
 
 Inicie o servidor de desenvolvimento:

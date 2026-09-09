@@ -41,8 +41,18 @@ If reuse is not justified, keep the code in the responsible feature.
 - `shared/types` — truly cross-feature types.
 - `shared/schemas` — validation shared across boundaries.
 - `shared/hooks` — hooks with more than one real consumer.
+- `shared/config/env` — typed environment modules (`clientEnv`, `serverEnv`).
 
 Shared code must not import private feature internals or depend on server-only modules unless clearly server-specific and relocated appropriately.
+
+## Environment configuration
+
+- Use `@/shared/config/env/client` and `@/shared/config/env/server` instead of direct application access to `process.env`.
+- Public variables require the `NEXT_PUBLIC_` prefix; those values are not secret.
+- Secrets must remain in the server module and never use `NEXT_PUBLIC_`.
+- Update `.env.example` when introducing a real variable; never add placeholder variables for future work.
+- Never log environment values.
+- Stop if a task requests exposing camera or facial data through configuration.
 
 ## Prohibited Patterns
 
