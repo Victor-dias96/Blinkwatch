@@ -6,6 +6,10 @@ Plataforma web complementar para sessões de RPG de terror. O Blinkwatch utiliza
 
 Projeto em desenvolvimento inicial. A base técnica (Next.js, TypeScript, Tailwind CSS, shadcn/ui, Lucide React) está configurada; as funcionalidades de câmera e visão computacional ainda **não** foram implementadas.
 
+## Instruções para agentes
+
+O repositório inclui um arquivo [`AGENTS.md`](AGENTS.md) na raiz com instruções versionadas para agentes de programação (escopo, arquitetura, privacidade, comandos e fluxo de trabalho).
+
 ## Arquitetura
 
 O projeto utiliza organização modular por **features**, com separação entre interface (`app`), funcionalidades verticais (`features`), regras de negócio (`domain`), integrações externas (`infrastructure`), código exclusivo do servidor (`server`) e utilitários transversais (`shared`).
