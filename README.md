@@ -16,6 +16,10 @@ O Blinkwatch também disponibiliza **Skills reutilizáveis** em [`.agents/skills
 
 Agentes devem ler o `SKILL.md` correspondente quando a tarefa se encaixar na descrição da Skill. As Skills **complementam**, mas **não substituem**, os arquivos `AGENTS.md`.
 
+### MCP (opcional)
+
+Integrações MCP são ferramentas **opcionais** de desenvolvimento para agentes de programação. Nenhum MCP é necessário para executar o Blinkwatch. A política de uso está em [`docs/development/mcp-strategy.md`](docs/development/mcp-strategy.md).
+
 ## Arquitetura
 
 O projeto utiliza organização modular por **features**, com separação entre interface (`app`), funcionalidades verticais (`features`), regras de negócio (`domain`), integrações externas (`infrastructure`), código exclusivo do servidor (`server`) e utilitários transversais (`shared`).

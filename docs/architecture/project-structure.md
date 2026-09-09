@@ -13,6 +13,7 @@ blinkwatch/
 ├── docs/
 │   ├── architecture/
 │   ├── decisions/
+│   ├── development/
 │   ├── privacy/
 │   ├── protocols/
 │   └── testing/
@@ -77,8 +78,10 @@ Esta árvore representa a **direção arquitetural** do projeto. Diretórios ser
 ```
 blinkwatch/
 ├── docs/
-│   └── architecture/
-│       └── project-structure.md
+│   ├── architecture/
+│   │   └── project-structure.md
+│   └── development/
+│       └── mcp-strategy.md
 ├── public/
 │   ├── file.svg
 │   ├── globe.svg
@@ -109,6 +112,7 @@ blinkwatch/
 Documentação técnica do projeto. Subdiretórios planejados:
 
 - `architecture/` — visão estrutural e decisões de organização;
+- `development/` — políticas e orientações para desenvolvimento assistido por agentes (ex.: estratégia opcional de MCP); configurações MCP **não** fazem parte do runtime da aplicação e **nenhuma** configuração MCP existe no repositório nesta etapa;
 - `decisions/` — ADRs (Architecture Decision Records);
 - `privacy/` — políticas e considerações de privacidade;
 - `protocols/` — contratos de comunicação entre cliente e servidor;
@@ -303,7 +307,7 @@ Nome do arquivo associado com sufixo adequado:
 - Camadas `domain`, `infrastructure` e `server`;
 - Subdiretórios de `shared` além de `lib/` (components, hooks, schemas, types, utils);
 - Subdiretórios de `public/` (audio, icons, models);
-- Subdiretórios de `docs/` além de `architecture/`;
+- Subdiretórios de `docs/` além de `architecture/` e `development/` (decisions, privacy, protocols, testing);
 - Subdiretórios de `tests/` além do README;
 - Câmera, MediaPipe, detecção de piscadas, multiplayer, persistência;
 - Componentes shadcn/ui;
