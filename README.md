@@ -39,17 +39,35 @@ Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 ## Validação
 
 ```bash
+npm run format:check
 npm run lint
 npm run typecheck
 npm run build
 ```
 
+## Formatação e lint
+
+```bash
+npm run format
+npm run format:check
+npm run lint
+npm run lint:fix
+```
+
+- `format` — aplica o Prettier e modifica os arquivos.
+- `format:check` — verifica a formatação sem alterar arquivos.
+- `lint` — identifica problemas de qualidade e ordem de imports com ESLint.
+- `lint:fix` — aplica correções seguras do ESLint, incluindo ordenação de imports.
+
 ## Scripts disponíveis
 
-| Comando | Descrição |
-|---------|-----------|
-| `npm run dev` | Inicia o ambiente de desenvolvimento |
-| `npm run build` | Gera a aplicação para produção |
-| `npm run start` | Executa a build de produção |
-| `npm run lint` | Verifica a qualidade do código com ESLint |
-| `npm run typecheck` | Executa a verificação de tipos do TypeScript |
+| Comando                | Descrição                                    |
+| ---------------------- | -------------------------------------------- |
+| `npm run dev`          | Inicia o ambiente de desenvolvimento         |
+| `npm run build`        | Gera a aplicação para produção               |
+| `npm run start`        | Executa a build de produção                  |
+| `npm run format`       | Formata o código com Prettier                |
+| `npm run format:check` | Verifica a formatação sem modificar arquivos |
+| `npm run lint`         | Verifica a qualidade do código com ESLint    |
+| `npm run lint:fix`     | Aplica correções automáticas do ESLint       |
+| `npm run typecheck`    | Executa a verificação de tipos do TypeScript |
