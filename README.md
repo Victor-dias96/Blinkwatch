@@ -4,7 +4,16 @@ Plataforma web complementar para sessões de RPG de terror. O Blinkwatch utiliza
 
 ## Status
 
-Projeto em desenvolvimento inicial. A base técnica (Next.js, TypeScript, Tailwind CSS) está configurada; as funcionalidades de câmera e visão computacional ainda **não** foram implementadas.
+Projeto em desenvolvimento inicial. A base técnica (Next.js, TypeScript, Tailwind CSS, shadcn/ui, Lucide React) está configurada; as funcionalidades de câmera e visão computacional ainda **não** foram implementadas.
+
+## Tecnologias principais
+
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Lucide React
 
 ## Requisitos
 
