@@ -310,7 +310,29 @@ Nome do arquivo associado com sufixo adequado:
 - Framework de testes (Vitest, Testing Library, Playwright);
 - Regras ESLint de fronteiras arquiteturais.
 
-## 12. Orientação contra abstrações prematuras
+## 12. Agent Skills
+
+Procedimentos especializados para agentes de programação ficam em `.agents/skills/`. Este é o **local canônico** das Skills do Blinkwatch; não duplique o conteúdo em `.cursor/skills`, `.claude/skills`, `.github/skills` ou outros caminhos.
+
+| Conceito        | Função                                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **`AGENTS.md`** | Regras permanentes do repositório ou de um diretório (privacidade, arquitetura, escopo, validação)                 |
+| **`SKILL.md`**  | Procedimento ativado para um tipo de tarefa (implementar feature, escrever testes, atualizar docs, revisar código) |
+| **`docs/`**     | Decisões e explicações arquiteturais de longo prazo                                                                |
+
+Cada Skill é um diretório autocontido com um `SKILL.md` (frontmatter YAML + corpo Markdown). Novas Skills são adicionadas incrementalmente conforme surgem fluxos recorrentes.
+
+Opcionalmente, uma Skill pode crescer com subdiretórios quando houver conteúdo real:
+
+- `scripts/` — utilitários determinísticos de validação;
+- `references/` — material técnico extenso;
+- `assets/` — fixtures ou templates reutilizáveis.
+
+**Não** crie esses subdiretórios vazios nem arquivos `.gitkeep` apenas para reservar estrutura. Compatibilidade com ferramentas específicas pode ser tratada futuramente por configuração ou referência, sem duplicar os arquivos-fonte em `.agents/skills`.
+
+Skills iniciais: `implement-feature`, `write-tests`, `update-documentation`, `review-code`.
+
+## 13. Orientação contra abstrações prematuras
 
 - Não crie interfaces, repositórios ou serviços antes de haver pelo menos um consumidor real.
 - Não extraia código para `shared` até que duas ou mais áreas o utilizem de fato.

@@ -10,6 +10,12 @@ Projeto em desenvolvimento inicial. A base técnica (Next.js, TypeScript, Tailwi
 
 O repositório inclui um arquivo [`AGENTS.md`](AGENTS.md) na raiz com instruções versionadas para agentes de programação (escopo, arquitetura, privacidade, comandos e fluxo de trabalho).
 
+### Agent Skills
+
+O Blinkwatch também disponibiliza **Skills reutilizáveis** em [`.agents/skills/`](.agents/skills/). Cada Skill é um diretório com um arquivo `SKILL.md` que descreve um procedimento especializado (implementação de features, testes, documentação ou revisão de código).
+
+Agentes devem ler o `SKILL.md` correspondente quando a tarefa se encaixar na descrição da Skill. As Skills **complementam**, mas **não substituem**, os arquivos `AGENTS.md`.
+
 ## Arquitetura
 
 O projeto utiliza organização modular por **features**, com separação entre interface (`app`), funcionalidades verticais (`features`), regras de negócio (`domain`), integrações externas (`infrastructure`), código exclusivo do servidor (`server`) e utilitários transversais (`shared`).

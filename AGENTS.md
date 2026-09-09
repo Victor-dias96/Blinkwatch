@@ -361,3 +361,15 @@ npm run commitlint   # validate a commit message (see README for examples)
 ```
 
 Installation: `npm install` (runs Husky `prepare` hook).
+
+## 14. Agent Skills
+
+Reusable task procedures live in [`.agents/skills/`](.agents/skills/). Each skill is a self-contained directory with a `SKILL.md` file (YAML frontmatter plus procedural instructions).
+
+- **Canonical location:** `.agents/skills` — do not duplicate skills under `.cursor/skills`, `.claude/skills`, `.github/skills`, or other paths.
+- **Selection:** Choose the skill whose `description` matches the current task (for example `implement-feature`, `write-tests`, `update-documentation`, `review-code`). Do not activate a skill based on vague similarity.
+- **Before execution:** Read the full `SKILL.md` for the selected skill after reading this file and applicable contextual `AGENTS.md` files.
+- **Precedence:** Skills complement but do not replace `AGENTS.md` rules. Privacy, security, and scope rules from this file and contextual `AGENTS.md` files remain mandatory. Skills must not weaken those rules.
+- **Scope:** Modify skills only when an issue explicitly includes skill work.
+
+Skills do not replace architectural documentation in [`docs/`](docs/) or issue-specific requirements in the task prompt.
