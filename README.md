@@ -60,6 +60,22 @@ npm run dev
 
 Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 
+## Integração contínua
+
+O repositório utiliza [GitHub Actions](https://github.com/features/actions) para validar pull requests e pushes na branch `main`. O workflow **CI** executa instalação reproduzível das dependências e as verificações de qualidade abaixo, **sem exigir credenciais** da aplicação.
+
+Documentação completa: [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md).
+
+Comandos executados pelo CI:
+
+```bash
+npm ci
+npm run format:check
+npm run lint
+npm run typecheck
+npm run build
+```
+
 ## Validação
 
 ```bash

@@ -10,10 +10,14 @@ O objetivo é permitir que cada área evolua de forma autônoma, com dependênci
 
 ```
 blinkwatch/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── docs/
 │   ├── architecture/
 │   ├── decisions/
 │   ├── development/
+│   │   └── continuous-integration.md
 │   ├── privacy/
 │   ├── protocols/
 │   └── testing/
@@ -77,10 +81,15 @@ Esta árvore representa a **direção arquitetural** do projeto. Diretórios ser
 
 ```
 blinkwatch/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── docs/
 │   ├── architecture/
 │   │   └── project-structure.md
 │   └── development/
+│       ├── continuous-integration.md
+│       ├── environment-variables.md
 │       └── mcp-strategy.md
 ├── public/
 │   ├── file.svg
@@ -112,7 +121,15 @@ blinkwatch/
 Documentação técnica do projeto. Subdiretórios planejados:
 
 - `architecture/` — visão estrutural e decisões de organização;
-- `development/` — políticas e orientações para desenvolvimento assistido por agentes (ex.: estratégia opcional de MCP); configurações MCP **não** fazem parte do runtime da aplicação e **nenhuma** configuração MCP existe no repositório nesta etapa;
+- `development/` — políticas e orientações para desenvolvimento (integração contínua, variáveis de ambiente, estratégia opcional de MCP); configurações MCP **não** fazem parte do runtime da aplicação e **nenhuma** configuração MCP existe no repositório nesta etapa;
+
+### `.github/`
+
+Automações do repositório no GitHub. O diretório `workflows/` contém definições de GitHub Actions.
+
+- `workflows/ci.yml` — workflow **CI** que valida formatação, lint, typecheck e build em pull requests e pushes para `main`.
+- Deploy, publicação de artifacts e integrações de produção **não** fazem parte do workflow atual.
+- GitHub Actions **não** faz parte do runtime entregue aos jogadores; é infraestrutura de desenvolvimento do repositório.
 - `decisions/` — ADRs (Architecture Decision Records);
 - `privacy/` — políticas e considerações de privacidade;
 - `protocols/` — contratos de comunicação entre cliente e servidor;
