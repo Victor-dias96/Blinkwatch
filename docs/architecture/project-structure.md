@@ -236,6 +236,21 @@ Regras automáticas de fronteiras arquiteturais no ESLint **não** foram impleme
 
 Consulte `tests/README.md` para detalhes.
 
+### Instruções contextuais para agentes
+
+Além do [`AGENTS.md`](../../AGENTS.md) na raiz, áreas arquiteturais possuem regras locais que complementam as instruções globais:
+
+| Arquivo                        | Escopo                                                                      |
+| ------------------------------ | --------------------------------------------------------------------------- |
+| `src/app/AGENTS.md`            | App Router, rotas, Server/Client Components, route handlers                 |
+| `src/features/AGENTS.md`       | Módulos funcionais verticais, fronteiras entre features, regras de detecção |
+| `src/infrastructure/AGENTS.md` | Adaptadores externos, MediaPipe, banco, tempo real                          |
+| `src/server/AGENTS.md`         | Código exclusivo do servidor, privacidade no servidor                       |
+| `src/shared/AGENTS.md`         | Código reutilizável, shadcn/ui, elegibilidade para `shared`                 |
+| `tests/AGENTS.md`              | Colocação de testes, mocks, fixtures, regras de teste de visão              |
+
+Agentes devem ler o arquivo da raiz e o contextual mais próximo do diretório em que trabalham. Regras locais adicionam restrições específicas; não enfraquecem privacidade, segurança ou qualidade definidas globalmente.
+
 ## 9. Convenções de nomes
 
 ### Diretórios

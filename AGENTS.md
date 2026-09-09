@@ -1,6 +1,16 @@
 # Blinkwatch Agent Instructions
 
-This file is the primary instruction source for programming agents working in this repository. These rules apply to the entire project. Closer `AGENTS.md` files may complement or specialize these rules in future issues. When instructions conflict with assumptions, **the real code and configuration in the repository take precedence**.
+This file is the primary instruction source for programming agents working in this repository. These rules apply to the entire project. Closer `AGENTS.md` files complement these global rules with area-specific constraints. When instructions conflict with assumptions, **the real code and configuration in the repository take precedence**.
+
+### Contextual agent instructions
+
+Agents working in a specific area must:
+
+1. Read this root file first.
+2. Read the nearest contextual `AGENTS.md` (for example, `src/app/AGENTS.md` when editing routes).
+3. Treat local rules as additional restrictions on top of global rules.
+
+Contextual files must not weaken privacy, security, quality, validation, scope control, Git, or responsible model-use rules from this file.
 
 ## 1. Project Overview
 
@@ -286,7 +296,7 @@ These rules are mandatory for any work involving the camera or computer vision.
 ### Before editing
 
 1. Read the complete issue.
-2. Read the nearest applicable `AGENTS.md` (this file until nested files exist).
+2. Read the nearest applicable contextual `AGENTS.md` in addition to this file.
 3. Inspect repository status (`git status`, relevant diffs).
 4. Inspect files you will modify or depend on.
 5. Identify existing conventions in nearby code.
