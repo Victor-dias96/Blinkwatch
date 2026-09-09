@@ -59,6 +59,38 @@ npm run lint:fix
 - `lint` — identifica problemas de qualidade e ordem de imports com ESLint.
 - `lint:fix` — aplica correções seguras do ESLint, incluindo ordenação de imports.
 
+## Validação de commits
+
+O projeto utiliza [Husky](https://typicode.github.io/husky/), [lint-staged](https://github.com/lint-staged/lint-staged) e [Commitlint](https://commitlint.js.org/) para garantir qualidade local antes de cada commit.
+
+- **Husky** — instala e executa hooks Git automaticamente após `npm install` (script `prepare`).
+- **lint-staged** — executa ESLint e Prettier somente nos arquivos preparados para commit.
+- **Commitlint** — valida se a mensagem de commit segue o padrão [Conventional Commits](https://www.conventionalcommits.org/).
+
+### Padrão de mensagens (Conventional Commits)
+
+Formato: `type(escopo opcional): descrição curta`
+
+Exemplos válidos:
+
+```
+feat: add new feature
+fix: correct unexpected behavior
+docs: update project documentation
+chore: update project configuration
+```
+
+### Hooks Git
+
+- **`pre-commit`** — executa `lint-staged` nos arquivos preparados (ESLint com `--fix` e Prettier em JS/TS; Prettier em CSS, JSON, Markdown e YAML).
+- **`commit-msg`** — executa o Commitlint sobre a mensagem do commit.
+
+### Testar mensagens manualmente
+
+```bash
+echo "chore: test commit message" | npm run commitlint
+```
+
 ## Scripts disponíveis
 
 | Comando                | Descrição                                    |
@@ -71,3 +103,4 @@ npm run lint:fix
 | `npm run lint`         | Verifica a qualidade do código com ESLint    |
 | `npm run lint:fix`     | Aplica correções automáticas do ESLint       |
 | `npm run typecheck`    | Executa a verificação de tipos do TypeScript |
+| `npm run commitlint`   | Valida uma mensagem de commit manualmente    |
