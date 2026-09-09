@@ -81,10 +81,18 @@ Esta árvore representa a **direção arquitetural** do projeto. Diretórios ser
 
 ```
 blinkwatch/
+├── .agents/
+│   └── skills/
+│       ├── implement-feature/
+│       ├── review-code/
+│       ├── update-documentation/
+│       └── write-tests/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
 ├── docs/
+│   ├── README.md
+│   ├── project-status.md
 │   ├── architecture/
 │   │   └── project-structure.md
 │   └── development/
@@ -104,6 +112,10 @@ blinkwatch/
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   └── shared/
+│       ├── config/
+│       │   └── env/
+│       │       ├── client.ts
+│       │       └── server.ts
 │       └── lib/
 │           └── utils.ts
 ├── tests/
@@ -118,7 +130,9 @@ blinkwatch/
 
 ### `docs/`
 
-Documentação técnica do projeto. Subdiretórios planejados:
+Documentação técnica do projeto. Entrada e índice: [`docs/README.md`](../README.md). Estado da Milestone 1: [`docs/project-status.md`](../project-status.md).
+
+Subdiretórios existentes e planejados:
 
 - `architecture/` — visão estrutural e decisões de organização;
 - `development/` — políticas e orientações para desenvolvimento (integração contínua, variáveis de ambiente, estratégia opcional de MCP); configurações MCP **não** fazem parte do runtime da aplicação e **nenhuma** configuração MCP existe no repositório nesta etapa;
@@ -324,7 +338,7 @@ Nome do arquivo associado com sufixo adequado:
 - Camadas `domain`, `infrastructure` e `server`;
 - Subdiretórios de `shared` além de `lib/` (components, hooks, schemas, types, utils);
 - Subdiretórios de `public/` (audio, icons, models);
-- Subdiretórios de `docs/` além de `architecture/` e `development/` (decisions, privacy, protocols, testing);
+- Subdiretórios de `docs/` além de `architecture/` e `development/` (decisions, privacy, protocols, testing); arquivos de entrada `docs/README.md` e `docs/project-status.md` **existem** nesta fase;
 - Subdiretórios de `tests/` além do README;
 - Câmera, MediaPipe, detecção de piscadas, multiplayer, persistência;
 - Componentes shadcn/ui;

@@ -1,58 +1,90 @@
 # Blinkwatch
 
-Plataforma web complementar para sessões de RPG de terror. O Blinkwatch utilizará a câmera do jogador e visão computacional executada localmente no navegador para detectar piscadas, ausência de rosto e, futuramente, desvios de atenção.
+Aplicação web experimental para complementar sessões de RPG de terror com mecânicas interativas baseadas em visão computacional executada no navegador. O projeto está em **desenvolvimento inicial**: a mecânica principal (câmera, detecção de piscadas e sincronização com o mestre) **ainda não foi implementada**.
 
-## Status
+## Visão geral
 
-Projeto em desenvolvimento inicial. A base técnica (Next.js, TypeScript, Tailwind CSS, shadcn/ui, Lucide React) está configurada; as funcionalidades de câmera e visão computacional ainda **não** foram implementadas.
+O Blinkwatch se inspira na ideia de criaturas ou ameaças que se movem ou reagem quando deixam de ser observadas — um tropo comum em narrativas de terror. A proposta é detectar eventos visuais do participante, como **piscadas** e **ausência de rosto**, e permitir que o **mestre** use esses sinais para conduzir consequências narrativas na mesa.
 
-## Instruções para agentes
+O Blinkwatch **complementa** a sessão de RPG; **não substitui** o sistema de jogo escolhido pelo grupo. As regras mecânicas e as consequências na ficção permanecem sob controle do mestre.
 
-O repositório inclui um arquivo [`AGENTS.md`](AGENTS.md) na raiz com instruções versionadas para agentes de programação (escopo, arquitetura, privacidade, comandos e fluxo de trabalho).
+## Estado atual
 
-### Agent Skills
+> **Aviso:** o projeto está em fase de **fundação**. A Milestone 1 concentrou arquitetura, qualidade de código, instruções para agentes, Skills, ambiente tipado e integração contínua.
+>
+> - Acesso à câmera: **não implementado**
+> - Detecção de piscadas: **não implementado**
+> - Multiplayer / salas em tempo real: **não implementado**
+> - Painel do mestre: **não implementado**
 
-O Blinkwatch também disponibiliza **Skills reutilizáveis** em [`.agents/skills/`](.agents/skills/). Cada Skill é um diretório com um arquivo `SKILL.md` que descreve um procedimento especializado (implementação de features, testes, documentação ou revisão de código).
+Detalhes verificáveis item a item: [`docs/project-status.md`](docs/project-status.md).
 
-Agentes devem ler o `SKILL.md` correspondente quando a tarefa se encaixar na descrição da Skill. As Skills **complementam**, mas **não substituem**, os arquivos `AGENTS.md`.
+## Funcionalidades planejadas
 
-### MCP (opcional)
+_Planejamento de alto nível — nenhum item abaixo está concluído nesta fase._
 
-Integrações MCP são ferramentas **opcionais** de desenvolvimento para agentes de programação. Nenhum MCP é necessário para executar o Blinkwatch. A política de uso está em [`docs/development/mcp-strategy.md`](docs/development/mcp-strategy.md).
+- Consentimento e acesso à câmera
+- Processamento visual local no navegador
+- Detecção calibrada de piscadas
+- Eventos de ausência de rosto
+- Experiência do jogador
+- Salas em tempo real
+- Painel do mestre
+- Motor configurável de criaturas
 
-## Arquitetura
+## Privacidade por design
 
-O projeto utiliza organização modular por **features**, com separação entre interface (`app`), funcionalidades verticais (`features`), regras de negócio (`domain`), integrações externas (`infrastructure`), código exclusivo do servidor (`server`) e utilitários transversais (`shared`).
+O Blinkwatch estabelece as seguintes regras para qualquer implementação futura envolvendo câmera ou visão computacional:
 
-A documentação completa está em [`docs/architecture/project-structure.md`](docs/architecture/project-structure.md).
+- O acesso à câmera **deverá exigir** consentimento explícito do participante.
+- O processamento visual **deverá ocorrer localmente** no navegador, por padrão.
+- Quadros de vídeo **não deverão ser enviados** ao mestre nem ao servidor.
+- Vídeo **não deverá ser gravado** automaticamente.
+- Reconhecimento de identidade **não faz parte** do projeto.
+- Quando existir comunicação em tempo real, **somente eventos mínimos de jogo** (por exemplo, uma piscada detectada) poderão ser transmitidos — nunca dados faciais brutos.
+- Afirmações de privacidade na documentação e na interface **deverão permanecer compatíveis** com a implementação real.
 
-A estrutura física do repositório cresce de forma **incremental**: diretórios são criados somente quando há arquivos reais a armazenar. Diretórios vazios não são adicionados apenas para representar planos futuros.
+Essas garantias estão detalhadas em [`AGENTS.md`](AGENTS.md) (seção de privacidade e câmera).
 
-## Tecnologias principais
+## Tecnologias
+
+Tecnologias **presentes** no repositório (versões em [`package.json`](package.json)):
 
 - Next.js (App Router)
 - React
 - TypeScript
 - Tailwind CSS
-- shadcn/ui
+- shadcn/ui (inicializado; componentes adicionados sob demanda)
 - Lucide React
+- Zod
+- ESLint
+- Prettier
+- Husky
+- lint-staged
+- Commitlint
+- GitHub Actions
+
+**Não instalados** nesta fase (mencionados apenas como possibilidades futuras): MediaPipe, Socket.IO, Prisma, PostgreSQL, frameworks de teste (Vitest, Testing Library, Playwright), servidores MCP.
 
 ## Requisitos
 
-- Node.js 20 ou superior
-- npm
+- **Git**
+- **Node.js 20 ou superior** — versão utilizada pelo CI em [`.github/workflows/ci.yml`](.github/workflows/ci.yml). O repositório não define `.nvmrc`, `.node-version` nem campo `engines` em `package.json`.
+- **npm** — gerenciador adotado (`package-lock.json` presente)
 
 ## Instalação
 
 ```bash
-npm install
+git clone <repository-url>
+cd blinkwatch
+npm ci
 ```
 
-O projeto **não exige credenciais externas** neste estágio. Valores locais opcionais devem ficar em `.env.local` (não versionado). O arquivo [`.env.example`](.env.example) documenta o formato das variáveis disponíveis. Instruções detalhadas estão em [`docs/development/environment-variables.md`](docs/development/environment-variables.md).
+O projeto **não exige credenciais externas** neste estágio. Valores locais opcionais ficam em `.env.local` (não versionado). Consulte [`.env.example`](.env.example) e [`docs/development/environment-variables.md`](docs/development/environment-variables.md).
 
 ## Desenvolvimento
 
-Inicie o servidor de desenvolvimento:
+Inicie o servidor local:
 
 ```bash
 npm run dev
@@ -60,24 +92,10 @@ npm run dev
 
 Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 
-## Integração contínua
-
-O repositório utiliza [GitHub Actions](https://github.com/features/actions) para validar pull requests e pushes na branch `main`. O workflow **CI** executa instalação reproduzível das dependências e as verificações de qualidade abaixo, **sem exigir credenciais** da aplicação.
-
-Documentação completa: [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md).
-
-Comandos executados pelo CI:
-
-```bash
-npm ci
-npm run format:check
-npm run lint
-npm run typecheck
-npm run build
-```
-
 ## Validação
 
+Execute antes de abrir um pull request ou reportar uma tarefa como concluída:
+
 ```bash
 npm run format:check
 npm run lint
@@ -85,62 +103,71 @@ npm run typecheck
 npm run build
 ```
 
-## Formatação e lint
+Correções automáticas quando necessário:
 
 ```bash
 npm run format
-npm run format:check
-npm run lint
 npm run lint:fix
 ```
 
-- `format` — aplica o Prettier e modifica os arquivos.
-- `format:check` — verifica a formatação sem alterar arquivos.
-- `lint` — identifica problemas de qualidade e ordem de imports com ESLint.
-- `lint:fix` — aplica correções seguras do ESLint, incluindo ordenação de imports.
+O CI executa a mesma sequência de verificação (com `npm ci` na instalação). Detalhes: [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md).
 
-## Validação de commits
+## Commits e hooks
 
-O projeto utiliza [Husky](https://typicode.github.io/husky/), [lint-staged](https://github.com/lint-staged/lint-staged) e [Commitlint](https://commitlint.js.org/) para garantir qualidade local antes de cada commit.
+O repositório usa [Husky](https://typicode.github.io/husky/), [lint-staged](https://github.com/lint-staged/lint-staged) e [Commitlint](https://commitlint.js.org/) com [Conventional Commits](https://www.conventionalcommits.org/).
 
-- **Husky** — instala e executa hooks Git automaticamente após `npm install` (script `prepare`).
-- **lint-staged** — executa ESLint e Prettier somente nos arquivos preparados para commit.
-- **Commitlint** — valida se a mensagem de commit segue o padrão [Conventional Commits](https://www.conventionalcommits.org/).
+- **`pre-commit`** — ESLint (com `--fix`) e Prettier nos arquivos preparados
+- **`commit-msg`** — validação da mensagem de commit
 
-### Padrão de mensagens (Conventional Commits)
+Exemplo de mensagem válida: `docs: update project documentation`
 
-Formato: `type(escopo opcional): descrição curta`
-
-Exemplos válidos:
-
-```
-feat: add new feature
-fix: correct unexpected behavior
-docs: update project documentation
-chore: update project configuration
-```
-
-### Hooks Git
-
-- **`pre-commit`** — executa `lint-staged` nos arquivos preparados (ESLint com `--fix` e Prettier em JS/TS; Prettier em CSS, JSON, Markdown e YAML).
-- **`commit-msg`** — executa o Commitlint sobre a mensagem do commit.
-
-### Testar mensagens manualmente
+Testar uma mensagem manualmente:
 
 ```bash
 echo "chore: test commit message" | npm run commitlint
 ```
 
+## Instruções para agentes
+
+Programação assistida por agentes deve seguir [`AGENTS.md`](AGENTS.md) na raiz e o `AGENTS.md` contextual mais próximo do diretório editado (por exemplo, `src/app/AGENTS.md`).
+
+**Agent Skills** reutilizáveis ficam em [`.agents/skills/`](.agents/skills/). Cada Skill possui um `SKILL.md` com procedimento especializado. Skills complementam, mas não substituem, as regras dos arquivos `AGENTS.md`.
+
+**MCP** (Model Context Protocol) é ferramenta **opcional** de desenvolvimento para agentes; não faz parte do runtime da aplicação. Política: [`docs/development/mcp-strategy.md`](docs/development/mcp-strategy.md).
+
+## Documentação
+
+Índice completo: [`docs/README.md`](docs/README.md).
+
+| Tópico                | Documento                                                                                  |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| Estrutura do projeto  | [`docs/architecture/project-structure.md`](docs/architecture/project-structure.md)         |
+| Estado da Milestone 1 | [`docs/project-status.md`](docs/project-status.md)                                         |
+| Variáveis de ambiente | [`docs/development/environment-variables.md`](docs/development/environment-variables.md)   |
+| Integração contínua   | [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md) |
+| Estratégia MCP        | [`docs/development/mcp-strategy.md`](docs/development/mcp-strategy.md)                     |
+
+## Como contribuir
+
+1. Escolha ou receba uma **issue** com escopo definido.
+2. Implemente **somente** o solicitado — não antecipe funcionalidades futuras (câmera, MediaPipe, salas, banco de dados, etc.).
+3. Leia [`AGENTS.md`](AGENTS.md) e o `AGENTS.md` contextual da área afetada.
+4. Ative a Skill correspondente em [`.agents/skills/`](.agents/skills/) quando aplicável.
+5. Execute a validação local (`format:check`, `lint`, `typecheck`, `build`).
+6. Abra um pull request; o workflow CI validará automaticamente.
+
+Diretrizes de arquitetura incremental: [`docs/architecture/project-structure.md`](docs/architecture/project-structure.md).
+
 ## Scripts disponíveis
 
-| Comando                | Descrição                                    |
-| ---------------------- | -------------------------------------------- |
-| `npm run dev`          | Inicia o ambiente de desenvolvimento         |
-| `npm run build`        | Gera a aplicação para produção               |
-| `npm run start`        | Executa a build de produção                  |
-| `npm run format`       | Formata o código com Prettier                |
-| `npm run format:check` | Verifica a formatação sem modificar arquivos |
-| `npm run lint`         | Verifica a qualidade do código com ESLint    |
-| `npm run lint:fix`     | Aplica correções automáticas do ESLint       |
-| `npm run typecheck`    | Executa a verificação de tipos do TypeScript |
-| `npm run commitlint`   | Valida uma mensagem de commit manualmente    |
+| Comando                | Descrição                       |
+| ---------------------- | ------------------------------- |
+| `npm run dev`          | Servidor de desenvolvimento     |
+| `npm run build`        | Build de produção               |
+| `npm run start`        | Executa a build de produção     |
+| `npm run format`       | Formata com Prettier            |
+| `npm run format:check` | Verifica formatação             |
+| `npm run lint`         | Executa ESLint                  |
+| `npm run lint:fix`     | Correções seguras do ESLint     |
+| `npm run typecheck`    | Verificação de tipos TypeScript |
+| `npm run commitlint`   | Valida mensagem de commit       |
