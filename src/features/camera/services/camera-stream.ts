@@ -113,3 +113,31 @@ export function resumeVideoTrack(stream: MediaStream): boolean {
   track.enabled = true;
   return track.enabled === true && track.readyState === 'live';
 }
+
+export function hasValidActiveVideoTrack(stream: MediaStream | null): boolean {
+  if (!stream) {
+    return false;
+  }
+
+  const track = getPrimaryVideoTrack(stream);
+
+  return (
+    isVideoTrackLive(track) &&
+    track.enabled &&
+    stream.getVideoTracks().length > 0
+  );
+}
+
+export function hasValidPausedVideoTrack(stream: MediaStream | null): boolean {
+  if (!stream) {
+    return false;
+  }
+
+  const track = getPrimaryVideoTrack(stream);
+
+  return (
+    isVideoTrackLive(track) &&
+    !track.enabled &&
+    stream.getVideoTracks().length > 0
+  );
+}

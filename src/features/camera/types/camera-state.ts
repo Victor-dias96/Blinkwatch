@@ -21,18 +21,6 @@ export type CameraState = {
   error: CameraPresentationError | null;
 };
 
-export const CAMERA_STATUS_LABELS: Record<CameraStatus, string> = {
-  idle: 'Câmera desligada',
-  requesting: 'Aguardando permissão',
-  active: 'Câmera ativa',
-  paused: 'Câmera pausada',
-  restarting: 'Reiniciando câmera',
-  switching: 'Trocando câmera',
-  denied: 'Permissão negada',
-  unavailable: 'Câmera indisponível',
-  error: 'Falha ao iniciar',
-};
-
 export function createCameraState(
   status: CameraStatus,
   error: CameraPresentationError | null = null

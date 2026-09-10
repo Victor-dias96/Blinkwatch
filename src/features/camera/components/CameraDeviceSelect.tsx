@@ -80,12 +80,6 @@ export function CameraDeviceSelect({
         </p>
       ) : null}
 
-      {isSwitching ? (
-        <p aria-live="polite" className="text-sm text-zinc-400">
-          Trocando câmera...
-        </p>
-      ) : null}
-
       {showRefreshButton ? (
         <Button
           type="button"

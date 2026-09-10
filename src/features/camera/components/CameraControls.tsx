@@ -4,11 +4,9 @@ import Link from 'next/link';
 
 import { Pause, Play, RotateCcw, VideoOff } from 'lucide-react';
 
-import type { CameraStatus } from '@/features/camera/types/camera-state';
 import { Button } from '@/shared/components/ui/button';
 
 type CameraControlsProps = {
-  status: CameraStatus;
   isRequesting: boolean;
   isSwitching: boolean;
   isRestarting: boolean;
@@ -27,7 +25,6 @@ type CameraControlsProps = {
 };
 
 export function CameraControls({
-  status,
   isRequesting,
   isSwitching,
   isRestarting,
@@ -126,12 +123,6 @@ export function CameraControls({
           <VideoOff aria-hidden="true" className="size-4 shrink-0" />
           <span>Encerrar câmera</span>
         </Button>
-      ) : null}
-
-      {status === 'restarting' ? (
-        <p aria-live="polite" className="w-full text-sm text-zinc-400">
-          Reiniciando câmera...
-        </p>
       ) : null}
 
       <Link

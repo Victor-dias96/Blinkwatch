@@ -38,6 +38,7 @@ Introduzir a experiência pública do jogador e preparar o caminho para configur
 | Seleção de dispositivo de câmera | Implementado | `src/features/camera/components/CameraDeviceSelect.tsx`       |
 | Controles de ciclo de vida       | Implementado | `src/features/camera/components/CameraControls.tsx`           |
 | Tratamento de erros da câmera    | Implementado | `src/features/camera/errors/camera-error.ts`                  |
+| Indicador de estado da câmera    | Implementado | `src/features/camera/components/CameraStatus.tsx`             |
 | Componente Button (shadcn/ui)    | Implementado | `src/shared/components/ui/button.tsx`                         |
 | Componentes Checkbox e Label     | Implementado | `src/shared/components/ui/checkbox.tsx`, `label.tsx`          |
 
@@ -49,7 +50,11 @@ Após a permissão, o participante pode **enumerar câmeras disponíveis** (`vid
 
 O **tratamento de erros** consolida falhas em códigos internos estáveis com mensagens em português, orientação de recuperação e retry explícito quando adequado. Contexto inseguro e API indisponível são detectados antes de solicitar a câmera. Permissão negada e bloqueada são distinguidas quando a Permissions API permite. Falhas de enumeração exibem aviso sem interromper a prévia. Falhas de troca preservam o stream anterior quando a track permanece `live`. Desconexão inesperada de dispositivo é detectada via evento `ended` da track. Detalhes técnicos sensíveis não são exibidos nem enviados externamente. Ver [`development/camera-errors.md`](development/camera-errors.md).
 
-Os **controles de ciclo de vida** estão documentados em [`development/camera-controls.md`](development/camera-controls.md). MediaPipe ainda não foi integrado; nenhuma detecção visual foi implementada.
+Os **controles de ciclo de vida** estão documentados em [`development/camera-controls.md`](development/camera-controls.md).
+
+O **indicador de estado** separa o estado técnico da apresentação visual (`resolveCameraStatusPresentation`). Estados normais, transitórios, pausados e de falha exibem título, descrição, ícone e tom — sem depender somente de cor. Erros e avisos operacionais permanecem em `CameraErrorMessage`; o status principal mantém **Câmera ativa** quando o stream continua válido após falha de troca ou enumeração. Detalhes em [`development/camera-status.md`](development/camera-status.md).
+
+MediaPipe ainda não foi integrado; nenhuma detecção visual foi implementada.
 
 ### Ainda não implementado na Milestone 2
 

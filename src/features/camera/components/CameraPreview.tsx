@@ -7,6 +7,7 @@ import { Pause, VideoOff } from 'lucide-react';
 import { CameraControls } from '@/features/camera/components/CameraControls';
 import { CameraDeviceSelect } from '@/features/camera/components/CameraDeviceSelect';
 import { CameraErrorMessage } from '@/features/camera/components/CameraErrorMessage';
+import { CameraStatus } from '@/features/camera/components/CameraStatus';
 import {
   type CameraPresentationError,
   classifyGetUserMediaError,
@@ -40,7 +41,6 @@ import {
   stopMediaStream,
 } from '@/features/camera/services/camera-stream';
 import {
-  CAMERA_STATUS_LABELS,
   type CameraState,
   createCameraState,
   resolveDisplayCameraState,
@@ -69,6 +69,8 @@ export function CameraPreview() {
   const [restartWarning, setRestartWarning] =
     useState<CameraPresentationError | null>(null);
   const [isRefreshingList, setIsRefreshingList] = useState(false);
+  const [hasValidActiveTrack, setHasValidActiveTrack] = useState(false);
+  const [hasValidPausedTrack, setHasValidPausedTrack] = useState(false);
 
   const displayState = resolveDisplayCameraState(cameraState);
 
@@ -106,6 +108,8 @@ export function CameraPreview() {
 
     stopMediaStream(streamFromRef, videoElement);
     streamRef.current = null;
+    setHasValidActiveTrack(false);
+    setHasValidPausedTrack(false);
 
     if (streamFromVideo && streamFromVideo !== streamFromRef) {
       stopMediaStream(streamFromVideo, videoElement);
@@ -328,6 +332,8 @@ export function CameraPreview() {
     streamRef.current = stream;
     isManualStopRef.current = false;
     attachTrackEndedListener(stream);
+    setHasValidActiveTrack(true);
+    setHasValidPausedTrack(false);
     setCameraState(createCameraState('active'));
     setActiveDeviceId(getActiveDeviceIdFromStream(stream));
     await loadDeviceList();
@@ -418,6 +424,8 @@ export function CameraPreview() {
 
     setRestartWarning(null);
     setSwitchError(null);
+    setHasValidActiveTrack(false);
+    setHasValidPausedTrack(true);
     setCameraState(createCameraState('paused'));
   }
 
@@ -453,6 +461,8 @@ export function CameraPreview() {
       return;
     }
 
+    setHasValidActiveTrack(true);
+    setHasValidPausedTrack(false);
     setCameraState(createCameraState('active'));
   }
 
@@ -612,6 +622,8 @@ export function CameraPreview() {
 
       setActiveDeviceId(confirmedDeviceId);
       setSwitchError(null);
+      setHasValidActiveTrack(true);
+      setHasValidPausedTrack(false);
       setCameraState(createCameraState('active'));
       await loadDeviceList();
     } catch (error) {
@@ -632,6 +644,8 @@ export function CameraPreview() {
         attachTrackEndedListener(previousStream);
         setActiveDeviceId(previousDeviceId);
         setSwitchError(classifySwitchDeviceError(error, true));
+        setHasValidActiveTrack(true);
+        setHasValidPausedTrack(false);
         setCameraState(createCameraState('active'));
         return;
       }
@@ -699,7 +713,6 @@ export function CameraPreview() {
     showDeviceSelector &&
     displayState.status !== 'paused' &&
     (deviceListError !== null || !supportsDeviceChangeEvent());
-  const statusLabel = CAMERA_STATUS_LABELS[displayState.status];
   const canPause = displayState.status === 'active';
   const canResume = displayState.status === 'paused';
   const canRestart = hasActiveOrPausedStream;
@@ -707,15 +720,13 @@ export function CameraPreview() {
 
   return (
     <div className="mt-8 space-y-6">
-      <p aria-live="polite" className="text-sm font-medium text-zinc-200">
-        Estado atual: {statusLabel}
-      </p>
-
-      {displayState.status === 'requesting' ? (
-        <p className="text-sm leading-relaxed text-zinc-400">
-          Aguardando sua decisão no navegador.
-        </p>
-      ) : null}
+      <CameraStatus
+        error={displayState.error}
+        hasValidActiveTrack={hasValidActiveTrack}
+        hasValidPausedTrack={hasValidPausedTrack}
+        isRefreshingDevices={isRefreshingList}
+        status={displayState.status}
+      />
 
       <section aria-labelledby="camera-preview-heading" className="space-y-3">
         <h2 id="camera-preview-heading" className="sr-only">
@@ -848,7 +859,6 @@ export function CameraPreview() {
         isSwitching={isSwitching}
         showActivate={showActivate}
         showPrimaryRetry={showPrimaryRetry}
-        status={displayState.status}
         onPause={handlePauseCamera}
         onRestart={() => {
           void handleRestartCamera();
