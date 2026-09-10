@@ -7,6 +7,11 @@ export const VIDEO_ONLY_CONSTRAINTS: MediaStreamConstraints = {
   audio: false,
 };
 
+export type ReleaseMediaStreamOptions = {
+  videoElement?: HTMLVideoElement | null;
+  endedHandler?: EventListener | null;
+};
+
 export function createDeviceVideoConstraints(
   deviceId: string
 ): MediaStreamConstraints {
@@ -32,17 +37,40 @@ export function requestVideoStreamForDevice(
   );
 }
 
-export function stopMediaStream(
-  stream: MediaStream | null,
-  videoElement: HTMLVideoElement | null = null
-): void {
-  if (stream) {
-    for (const track of stream.getTracks()) {
-      track.stop();
-    }
+export function getAssignedMediaStream(
+  videoElement: HTMLVideoElement | null
+): MediaStream | null {
+  if (videoElement?.srcObject instanceof MediaStream) {
+    return videoElement.srcObject;
   }
 
-  if (videoElement) {
+  return null;
+}
+
+/**
+ * Stops every track on a stream without depending on the `ended` event.
+ * Idempotent: a missing stream, a repeated call, or already-ended tracks are safe.
+ * Clears `video.srcObject` only when it still points at the released stream.
+ */
+export function releaseMediaStream(
+  stream: MediaStream | null,
+  options: ReleaseMediaStreamOptions = {}
+): void {
+  if (!stream) {
+    return;
+  }
+
+  const { videoElement = null, endedHandler = null } = options;
+
+  for (const track of stream.getTracks()) {
+    if (endedHandler) {
+      track.removeEventListener('ended', endedHandler);
+    }
+
+    track.stop();
+  }
+
+  if (videoElement && videoElement.srcObject === stream) {
     videoElement.srcObject = null;
   }
 }

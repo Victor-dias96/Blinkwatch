@@ -12,8 +12,8 @@ Implementação principal:
 
 - `src/features/camera/status/camera-status.ts` — mapeamento tipado (função pura)
 - `src/features/camera/components/CameraStatus.tsx` — apresentação acessível
-- `src/features/camera/components/CameraPreview.tsx` — fonte da verdade do estado técnico
-- `src/features/camera/services/camera-stream.ts` — validação defensiva da track
+- `src/features/camera/components/CameraPreview.tsx` — fonte da verdade do estado técnico e único proprietário do stream
+- `src/features/camera/services/camera-stream.ts` — validação defensiva da track e `releaseMediaStream`
 
 ## Technical state versus presentation state
 

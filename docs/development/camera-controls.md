@@ -12,7 +12,7 @@ Implementação principal:
 
 - `src/features/camera/components/CameraPreview.tsx` — controlador (stream, vídeo, operações assíncronas)
 - `src/features/camera/components/CameraControls.tsx` — apresentação das ações
-- `src/features/camera/services/camera-stream.ts` — helpers de track (`enabled`, `stop`)
+- `src/features/camera/services/camera-stream.ts` — helpers de track (`enabled`) e `releaseMediaStream`
 - `src/features/camera/types/camera-state.ts` — estados da câmera
 
 ## Camera lifecycle
@@ -82,11 +82,12 @@ Pausar interrompe a prévia e o uso da imagem pela aplicação, mas **não equiv
 
 - Ação: **Encerrar câmera** (em `active` ou `paused`)
 - Invalida operações pendentes
-- `track.stop()` em todas as tracks
+- `releaseAllCameraMedia`: `track.stop()` em todas as tracks conhecidas (ativo, pendente e `srcObject`)
 - Limpa `video.srcObject` e referências ao stream
 - Limpa dispositivo ativo e estados transitórios
-- Retorna a `idle`
-- Idempotente — executar sem stream não lança erro
+- Retorna a `idle` — o indicador mostra **Câmera desligada**
+- Não inicia nova solicitação automaticamente
+- Idempotente — executar sem stream ou repetir o cleanup não lança erro nem emite desconexão
 
 ## Difference between `enabled`, `muted`, `readyState` and `stop`
 
@@ -141,15 +142,20 @@ restarting ──(falha)──► error | unavailable | denied
 
 - Contador de geração (`operationGenerationRef`) invalida operações obsoletas
 - Refs `isRequestingRef`, `isSwitchingRef`, `isRestartingRef` impedem operações simultâneas incompatíveis
-- Streams tardios recebem `stop()` e não são associados ao vídeo
+- Streams tardios são liberados por identidade (`releaseMediaStream`) e não substituem um `srcObject` mais novo
+- `pendingStreamRef` permite encerrar um `getUserMedia` que resolveu após desmontar
 - Encerramento incrementa a geração e limpa flags transitórias
+- Detalhes em [`camera-lifecycle.md`](camera-lifecycle.md)
 
 ## Stream cleanup
 
-- Desmontagem da rota e navegação encerram streams **ativos e pausados**
+- Encerramento definitivo usa `releaseAllCameraMedia` (ativo + pendente + `srcObject`)
+- Desmontagem da rota e navegação encerram streams **ativos e pausados** sem `setState` e sem falso `device-disconnected`
 - Pausa **não** preserva stream entre páginas
-- `track.stop()` + `video.srcObject = null` em encerramento e reinício
-- Listeners `ended` removidos antes de substituir ou encerrar tracks
+- `releaseMediaStream` chama `track.stop()` em `getTracks()` e limpa `srcObject` só quando aponta para o stream encerrado
+- Listeners `ended` removidos antes de `stop()`; o cleanup é idempotente (botão + unmount + Strict Mode)
+- O efeito de montagem **não** inicia a câmera
+- Detalhes em [`camera-lifecycle.md`](camera-lifecycle.md)
 
 ## Interaction with device selection
 

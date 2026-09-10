@@ -94,16 +94,18 @@ Suporte a `camera` como `PermissionName` varia entre navegadores; falhas são ig
 ## Stream preservation rules
 
 - **Troca de câmera:** novo stream é solicitado antes de encerrar o anterior; falha preserva o stream anterior se a track principal ainda estiver `live`.
-- **Enumeração:** falha não interrompe tracks ativas.
-- **Streams parciais:** encerrados com `track.stop()` quando a operação não é concluída.
-- **Respostas obsoletas:** descartadas por geração de operação e flag `isMounted`.
+- **Enumeração:** falha não interrompe tracks ativas; enumeração **tardia** (geração obsoleta) é ignorada e não marca desconexão.
+- **Streams parciais:** encerrados com `releaseMediaStream` quando a operação não é concluída.
+- **Respostas obsoletas:** descartadas por geração de operação, `isMounted` e comparação de identidade do stream. Um `getUserMedia` tardio não é associado ao vídeo e não emite erro de desconexão.
 
 ## Cleanup rules
 
-- `track.stop()` em desligamento manual, desmontagem e streams obsoletos.
-- `video.srcObject = null` ao encerrar.
+- Função central: `releaseMediaStream` em `camera-stream.ts`. Ver [`camera-lifecycle.md`](camera-lifecycle.md).
+- `track.stop()` em desligamento manual, desmontagem, falhas e streams obsoletos — sem depender do evento `ended`.
+- `video.srcObject = null` no encerramento definitivo; em stream obsoleto, só se `srcObject` ainda for aquele stream.
 - Listener `ended` removido no cleanup e antes de substituir tracks.
 - Flag `isManualStopRef` evita tratar stop deliberado como desconexão.
+- Encerramento repetido (botão + cleanup + Strict Mode) é idempotente e não gera falso alerta.
 
 ## Device disconnection behavior
 
@@ -159,6 +161,7 @@ Quando um runner de testes for instalado:
 
 ## Fontes consultadas
 
+- [`camera-lifecycle.md`](camera-lifecycle.md) — propriedade do stream e encerramento seguro
 - [MDN: MediaDevices.getUserMedia()](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
 - [MDN: DOMException](https://developer.mozilla.org/en-US/docs/Web/API/DOMException)
 - [MDN: MediaStreamTrack](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack)

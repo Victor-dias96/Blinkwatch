@@ -97,7 +97,7 @@ Nenhuma conversão de coordenadas é implementada nesta issue.
 
 ## Behavior after stopping
 
-- Encerrar libera stream e tracks como já implementado.
+- Encerrar libera stream e tracks conforme [`camera-lifecycle.md`](camera-lifecycle.md).
 - `isMirrored` permanece em memória enquanto o participante permanece em `/play/camera`.
 - Iniciar novamente reutiliza a preferência atual (sem reset ao padrão).
 - Ao sair da rota, o componente desmonta e `isMirrored` volta a `true` na próxima visita.

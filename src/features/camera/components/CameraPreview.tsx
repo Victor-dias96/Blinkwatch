@@ -32,14 +32,15 @@ import {
 } from '@/features/camera/services/camera-devices';
 import {
   attachStreamToVideo,
+  getAssignedMediaStream,
   getPrimaryVideoTrack,
   isVideoTrackPausable,
   isVideoTrackResumable,
   pauseVideoTrack,
+  releaseMediaStream,
   requestVideoStream,
   requestVideoStreamForDevice,
   resumeVideoTrack,
-  stopMediaStream,
 } from '@/features/camera/services/camera-stream';
 import {
   type CameraState,
@@ -50,6 +51,7 @@ import { cn } from '@/shared/lib/utils';
 export function CameraPreview() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const pendingStreamRef = useRef<MediaStream | null>(null);
   const trackEndedHandlerRef = useRef<(() => void) | null>(null);
   const isMountedRef = useRef(true);
   const isRequestingRef = useRef(false);
@@ -74,47 +76,105 @@ export function CameraPreview() {
   const [hasValidPausedTrack, setHasValidPausedTrack] = useState(false);
   const [isMirrored, setIsMirrored] = useState(true);
 
+  const canApplyOperationResult = useCallback((generation: number) => {
+    return (
+      isMountedRef.current && generation === operationGenerationRef.current
+    );
+  }, []);
+
   const invalidateOperations = useCallback(() => {
     operationGenerationRef.current += 1;
+  }, []);
+
+  const clearTrackValidityState = useCallback(() => {
+    if (!isMountedRef.current) {
+      return;
+    }
+
+    setHasValidActiveTrack(false);
+    setHasValidPausedTrack(false);
   }, []);
 
   const detachTrackEndedListener = useCallback(() => {
     const stream = streamRef.current;
     const handler = trackEndedHandlerRef.current;
+    trackEndedHandlerRef.current = null;
 
     if (!stream || !handler) {
-      trackEndedHandlerRef.current = null;
       return;
     }
 
-    const track = getPrimaryVideoTrack(stream);
-
-    if (track) {
+    for (const track of stream.getTracks()) {
       track.removeEventListener('ended', handler);
     }
+  }, []);
 
+  const releaseStream = useCallback((stream: MediaStream | null) => {
+    if (!stream) {
+      return;
+    }
+
+    const handler =
+      stream === streamRef.current ? trackEndedHandlerRef.current : null;
+
+    if (stream === streamRef.current) {
+      trackEndedHandlerRef.current = null;
+    }
+
+    releaseMediaStream(stream, {
+      videoElement: videoRef.current,
+      endedHandler: handler,
+    });
+
+    if (streamRef.current === stream) {
+      streamRef.current = null;
+    }
+
+    if (pendingStreamRef.current === stream) {
+      pendingStreamRef.current = null;
+    }
+  }, []);
+
+  const releaseAllCameraMedia = useCallback(() => {
+    const videoElement = videoRef.current;
+    const handler = trackEndedHandlerRef.current;
     trackEndedHandlerRef.current = null;
+
+    const knownStreams = new Set<MediaStream>();
+
+    if (streamRef.current) {
+      knownStreams.add(streamRef.current);
+    }
+
+    if (pendingStreamRef.current) {
+      knownStreams.add(pendingStreamRef.current);
+    }
+
+    const videoStream = getAssignedMediaStream(videoElement);
+
+    if (videoStream) {
+      knownStreams.add(videoStream);
+    }
+
+    for (const stream of knownStreams) {
+      releaseMediaStream(stream, {
+        videoElement,
+        endedHandler: handler,
+      });
+    }
+
+    if (videoElement) {
+      videoElement.srcObject = null;
+    }
+
+    streamRef.current = null;
+    pendingStreamRef.current = null;
   }, []);
 
   const stopActiveStream = useCallback(() => {
-    detachTrackEndedListener();
-
-    const videoElement = videoRef.current;
-    const streamFromRef = streamRef.current;
-    const streamFromVideo =
-      videoElement?.srcObject instanceof MediaStream
-        ? videoElement.srcObject
-        : null;
-
-    stopMediaStream(streamFromRef, videoElement);
-    streamRef.current = null;
-    setHasValidActiveTrack(false);
-    setHasValidPausedTrack(false);
-
-    if (streamFromVideo && streamFromVideo !== streamFromRef) {
-      stopMediaStream(streamFromVideo, videoElement);
-    }
-  }, [detachTrackEndedListener]);
+    releaseAllCameraMedia();
+    clearTrackValidityState();
+  }, [clearTrackValidityState, releaseAllCameraMedia]);
 
   const resetDeviceState = useCallback(() => {
     setDevices([]);
@@ -126,6 +186,11 @@ export function CameraPreview() {
   }, []);
 
   const handleActiveDeviceRemoved = useCallback(() => {
+    if (!isMountedRef.current || isManualStopRef.current) {
+      return;
+    }
+
+    isManualStopRef.current = true;
     invalidateOperations();
     isSwitchingRef.current = false;
     isRestartingRef.current = false;
@@ -141,14 +206,8 @@ export function CameraPreview() {
     (stream: MediaStream) => {
       detachTrackEndedListener();
 
-      const track = getPrimaryVideoTrack(stream);
-
-      if (!track) {
-        return;
-      }
-
       const handleTrackEnded = () => {
-        if (isManualStopRef.current) {
+        if (isManualStopRef.current || !isMountedRef.current) {
           return;
         }
 
@@ -156,35 +215,43 @@ export function CameraPreview() {
       };
 
       trackEndedHandlerRef.current = handleTrackEnded;
-      track.addEventListener('ended', handleTrackEnded);
+
+      for (const track of stream.getTracks()) {
+        track.addEventListener('ended', handleTrackEnded);
+      }
     },
     [detachTrackEndedListener, handleActiveDeviceRemoved]
   );
 
-  const loadDeviceList = useCallback(async (): Promise<boolean> => {
-    if (!isMediaDevicesApiAvailable()) {
-      return false;
-    }
+  const loadDeviceList = useCallback(
+    async (generation?: number): Promise<boolean> => {
+      const operationGeneration = generation ?? operationGenerationRef.current;
 
-    try {
-      const nextDevices = await enumerateVideoInputDevices();
-
-      if (!isMountedRef.current) {
+      if (!isMediaDevicesApiAvailable()) {
         return false;
       }
 
-      setDevices(nextDevices);
-      setDeviceListError(null);
-      return true;
-    } catch {
-      if (!isMountedRef.current) {
+      try {
+        const nextDevices = await enumerateVideoInputDevices();
+
+        if (!canApplyOperationResult(operationGeneration)) {
+          return false;
+        }
+
+        setDevices(nextDevices);
+        setDeviceListError(null);
+        return true;
+      } catch {
+        if (!canApplyOperationResult(operationGeneration)) {
+          return false;
+        }
+
+        setDeviceListError(createEnumerationFailedError());
         return false;
       }
-
-      setDeviceListError(createEnumerationFailedError());
-      return false;
-    }
-  }, []);
+    },
+    [canApplyOperationResult]
+  );
 
   const refreshDeviceList = useCallback(async () => {
     if (
@@ -200,6 +267,7 @@ export function CameraPreview() {
       return;
     }
 
+    const generation = operationGenerationRef.current;
     setIsRefreshingList(true);
 
     try {
@@ -208,7 +276,7 @@ export function CameraPreview() {
       try {
         nextDevices = await enumerateVideoInputDevices();
       } catch {
-        if (!isMountedRef.current) {
+        if (!canApplyOperationResult(generation)) {
           return;
         }
 
@@ -216,7 +284,7 @@ export function CameraPreview() {
         return;
       }
 
-      if (!isMountedRef.current) {
+      if (!canApplyOperationResult(generation)) {
         return;
       }
 
@@ -237,13 +305,14 @@ export function CameraPreview() {
         handleActiveDeviceRemoved();
       }
     } finally {
-      if (isMountedRef.current) {
+      if (canApplyOperationResult(generation)) {
         setIsRefreshingList(false);
       }
     }
   }, [
     activeDeviceId,
     cameraState.status,
+    canApplyOperationResult,
     handleActiveDeviceRemoved,
     isRefreshingList,
   ]);
@@ -254,13 +323,13 @@ export function CameraPreview() {
     return () => {
       isMountedRef.current = false;
       isManualStopRef.current = true;
-      invalidateOperations();
+      operationGenerationRef.current += 1;
       isRequestingRef.current = false;
       isSwitchingRef.current = false;
       isRestartingRef.current = false;
-      stopActiveStream();
+      releaseAllCameraMedia();
     };
-  }, [invalidateOperations, stopActiveStream]);
+  }, [releaseAllCameraMedia]);
 
   useEffect(() => {
     if (cameraState.status !== 'active' && cameraState.status !== 'switching') {
@@ -289,16 +358,19 @@ export function CameraPreview() {
     stream: MediaStream,
     generation: number
   ): Promise<boolean> {
-    if (
-      !isMountedRef.current ||
-      generation !== operationGenerationRef.current
-    ) {
-      stopMediaStream(stream);
+    pendingStreamRef.current = stream;
+
+    if (!canApplyOperationResult(generation)) {
+      releaseStream(stream);
       return false;
     }
 
     if (stream.getAudioTracks().length > 0) {
-      stopMediaStream(stream);
+      releaseStream(stream);
+      if (!canApplyOperationResult(generation)) {
+        return false;
+      }
+
       setCameraState(
         createCameraStateFromError(createUnexpectedAudioTrackError())
       );
@@ -308,7 +380,11 @@ export function CameraPreview() {
     const videoElement = videoRef.current;
 
     if (!videoElement) {
-      stopMediaStream(stream);
+      releaseStream(stream);
+      if (!canApplyOperationResult(generation)) {
+        return false;
+      }
+
       setCameraState(createCameraStateFromError(createPlaybackFailedError()));
       return false;
     }
@@ -316,27 +392,47 @@ export function CameraPreview() {
     try {
       await attachStreamToVideo(videoElement, stream);
     } catch {
-      stopMediaStream(stream, videoElement);
+      releaseStream(stream);
+      if (!canApplyOperationResult(generation)) {
+        return false;
+      }
+
       setCameraState(createCameraStateFromError(createPlaybackFailedError()));
       return false;
     }
 
-    if (
-      !isMountedRef.current ||
-      generation !== operationGenerationRef.current
-    ) {
-      stopMediaStream(stream, videoElement);
+    if (!canApplyOperationResult(generation)) {
+      releaseStream(stream);
       return false;
     }
 
+    pendingStreamRef.current = null;
     streamRef.current = stream;
     isManualStopRef.current = false;
     attachTrackEndedListener(stream);
+
+    const adoptedTrack = getPrimaryVideoTrack(stream);
+
+    if (!adoptedTrack) {
+      releaseStream(stream);
+      if (!canApplyOperationResult(generation)) {
+        return false;
+      }
+
+      setCameraState(createCameraStateFromError(createPlaybackFailedError()));
+      return false;
+    }
+
+    if (adoptedTrack.readyState === 'ended') {
+      handleActiveDeviceRemoved();
+      return false;
+    }
+
     setHasValidActiveTrack(true);
     setHasValidPausedTrack(false);
     setCameraState(createCameraState('active'));
     setActiveDeviceId(getActiveDeviceIdFromStream(stream));
-    await loadDeviceList();
+    await loadDeviceList(generation);
     return true;
   }
 
@@ -375,7 +471,7 @@ export function CameraPreview() {
     }
 
     const generation = ++operationGenerationRef.current;
-    isManualStopRef.current = false;
+    isManualStopRef.current = true;
     isRequestingRef.current = true;
     stopActiveStream();
     resetDeviceState();
@@ -383,16 +479,19 @@ export function CameraPreview() {
 
     try {
       const stream = await requestVideoStream();
+      pendingStreamRef.current = stream;
       await finalizeStreamActivation(stream, generation);
     } catch (error) {
-      if (
-        !isMountedRef.current ||
-        generation !== operationGenerationRef.current
-      ) {
+      if (!canApplyOperationResult(generation)) {
         return;
       }
 
       const presentationError = await classifyGetUserMediaError(error);
+
+      if (!canApplyOperationResult(generation)) {
+        return;
+      }
+
       setCameraState(createCameraStateFromError(presentationError));
     } finally {
       if (generation === operationGenerationRef.current) {
@@ -442,6 +541,7 @@ export function CameraPreview() {
     const stream = streamRef.current;
 
     if (!stream) {
+      stopActiveStream();
       setCameraState(createCameraState('idle'));
       return;
     }
@@ -486,7 +586,6 @@ export function CameraPreview() {
     isRestartingRef.current = true;
     setRestartWarning(null);
     setSwitchError(null);
-    detachTrackEndedListener();
     stopActiveStream();
     setCameraState(createCameraState('restarting'));
 
@@ -500,7 +599,12 @@ export function CameraPreview() {
           : await requestVideoStream();
       } catch (error) {
         if (savedDeviceId && isMissingDeviceError(error)) {
-          await loadDeviceList();
+          await loadDeviceList(generation);
+
+          if (!canApplyOperationResult(generation)) {
+            return;
+          }
+
           stream = await requestVideoStream();
           usedDefaultFallback = true;
         } else {
@@ -508,29 +612,29 @@ export function CameraPreview() {
         }
       }
 
+      pendingStreamRef.current = stream;
       const activated = await finalizeStreamActivation(stream, generation);
 
       if (!activated) {
         return;
       }
 
-      if (
-        usedDefaultFallback &&
-        generation === operationGenerationRef.current
-      ) {
+      if (usedDefaultFallback && canApplyOperationResult(generation)) {
         setRestartWarning(createDeviceUnavailableRestartWarning());
       }
     } catch (error) {
-      if (
-        !isMountedRef.current ||
-        generation !== operationGenerationRef.current
-      ) {
+      if (!canApplyOperationResult(generation)) {
         return;
       }
 
       stopActiveStream();
       setActiveDeviceId(null);
       const presentationError = await classifyGetUserMediaError(error);
+
+      if (!canApplyOperationResult(generation)) {
+        return;
+      }
+
       setCameraState(createCameraStateFromError(presentationError));
     } finally {
       if (generation === operationGenerationRef.current) {
@@ -564,20 +668,23 @@ export function CameraPreview() {
     const previousStream = streamRef.current;
     const previousDeviceId = activeDeviceId;
     const videoElement = videoRef.current;
+    let nextStream: MediaStream | null = null;
 
     try {
-      const nextStream = await requestVideoStreamForDevice(selectedDeviceId);
+      nextStream = await requestVideoStreamForDevice(selectedDeviceId);
+      pendingStreamRef.current = nextStream;
 
-      if (
-        !isMountedRef.current ||
-        generation !== operationGenerationRef.current
-      ) {
-        stopMediaStream(nextStream);
+      if (!canApplyOperationResult(generation)) {
+        releaseStream(nextStream);
         return;
       }
 
       if (nextStream.getAudioTracks().length > 0) {
-        stopMediaStream(nextStream);
+        releaseStream(nextStream);
+        if (!canApplyOperationResult(generation)) {
+          return;
+        }
+
         setSwitchError(
           classifySwitchDeviceError(new Error('unexpected-audio'), true)
         );
@@ -586,7 +693,11 @@ export function CameraPreview() {
       }
 
       if (!videoElement) {
-        stopMediaStream(nextStream);
+        releaseStream(nextStream);
+        if (!canApplyOperationResult(generation)) {
+          return;
+        }
+
         setSwitchError(classifySwitchDeviceError(new Error('no-video'), true));
         setCameraState(createCameraState('active'));
         return;
@@ -595,7 +706,15 @@ export function CameraPreview() {
       try {
         await attachStreamToVideo(videoElement, nextStream);
       } catch {
-        stopMediaStream(nextStream, videoElement);
+        releaseStream(nextStream);
+        if (!canApplyOperationResult(generation)) {
+          return;
+        }
+
+        if (previousStream) {
+          videoElement.srcObject = previousStream;
+        }
+
         setSwitchError(
           classifySwitchDeviceError(new Error('playback-failed'), true)
         );
@@ -603,19 +722,25 @@ export function CameraPreview() {
         return;
       }
 
-      if (
-        !isMountedRef.current ||
-        generation !== operationGenerationRef.current
-      ) {
-        stopMediaStream(nextStream, videoElement);
+      if (!canApplyOperationResult(generation)) {
+        releaseStream(nextStream);
         return;
       }
 
       detachTrackEndedListener();
+      isManualStopRef.current = true;
+      releaseStream(previousStream);
       isManualStopRef.current = false;
-      stopMediaStream(previousStream);
+      pendingStreamRef.current = null;
       streamRef.current = nextStream;
       attachTrackEndedListener(nextStream);
+
+      const adoptedTrack = getPrimaryVideoTrack(nextStream);
+
+      if (adoptedTrack?.readyState === 'ended') {
+        handleActiveDeviceRemoved();
+        return;
+      }
 
       const confirmedDeviceId =
         getActiveDeviceIdFromStream(nextStream) ?? selectedDeviceId;
@@ -625,12 +750,13 @@ export function CameraPreview() {
       setHasValidActiveTrack(true);
       setHasValidPausedTrack(false);
       setCameraState(createCameraState('active'));
-      await loadDeviceList();
+      await loadDeviceList(generation);
     } catch (error) {
-      if (
-        !isMountedRef.current ||
-        generation !== operationGenerationRef.current
-      ) {
+      if (nextStream && streamRef.current !== nextStream) {
+        releaseStream(nextStream);
+      }
+
+      if (!canApplyOperationResult(generation)) {
         return;
       }
 
@@ -671,6 +797,11 @@ export function CameraPreview() {
     isRestartingRef.current = false;
     stopActiveStream();
     resetDeviceState();
+
+    if (!isMountedRef.current) {
+      return;
+    }
+
     setCameraState(createCameraState('idle'));
   }
 
