@@ -411,3 +411,18 @@ export function createUnexpectedAudioTrackError(): CameraPresentationError {
     recovery: 'Tente novamente ou volte à etapa anterior.',
   });
 }
+
+export function isMissingDeviceError(error: unknown): boolean {
+  const code = classifyUnknownError(error);
+  return code === 'device-not-found' || code === 'constraints-not-supported';
+}
+
+export function createDeviceUnavailableRestartWarning(): CameraPresentationError {
+  return createCameraPresentationError('device-not-found', {
+    title: 'Câmera anterior indisponível',
+    message: 'A câmera selecionada não está mais disponível.',
+    recovery: 'A câmera padrão foi utilizada neste reinício.',
+    severity: 'warning',
+    canRetry: false,
+  });
+}

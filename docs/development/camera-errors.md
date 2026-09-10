@@ -141,7 +141,7 @@ Quando a track principal emite `ended` sem stop manual:
 
 | Sintoma                                   | Verificação                                                           |
 | ----------------------------------------- | --------------------------------------------------------------------- |
-| Botão “Ativar câmera” ausente             | Pode ser contexto inseguro ou API indisponível — ver mensagem exibida |
+| Botão “Iniciar câmera” ausente            | Pode ser contexto inseguro ou API indisponível — ver mensagem exibida |
 | Permissão negada sem retry                | Pode ser `permission-blocked` — revisar configurações do site         |
 | Prévia some após desconectar USB          | Comportamento esperado (`device-disconnected`)                        |
 | Lista de câmeras vazia com prévia ativa   | Falha de enumeração — usar “Atualizar câmeras”                        |

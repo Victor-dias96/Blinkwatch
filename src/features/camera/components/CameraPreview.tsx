@@ -1,10 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { VideoOff } from 'lucide-react';
+import { Pause, VideoOff } from 'lucide-react';
 
+import { CameraControls } from '@/features/camera/components/CameraControls';
 import { CameraDeviceSelect } from '@/features/camera/components/CameraDeviceSelect';
 import { CameraErrorMessage } from '@/features/camera/components/CameraErrorMessage';
 import {
@@ -13,11 +13,13 @@ import {
   classifySwitchDeviceError,
   createCameraStateFromError,
   createDeviceDisconnectedError,
+  createDeviceUnavailableRestartWarning,
   createEnumerationFailedError,
   createPlaybackFailedError,
   createPreActivationError,
   createUnexpectedAudioTrackError,
   isMediaDevicesApiAvailable,
+  isMissingDeviceError,
   isSecureBrowserContext,
 } from '@/features/camera/errors/camera-error';
 import {
@@ -29,8 +31,12 @@ import {
 import {
   attachStreamToVideo,
   getPrimaryVideoTrack,
+  isVideoTrackPausable,
+  isVideoTrackResumable,
+  pauseVideoTrack,
   requestVideoStream,
   requestVideoStreamForDevice,
+  resumeVideoTrack,
   stopMediaStream,
 } from '@/features/camera/services/camera-stream';
 import {
@@ -39,7 +45,6 @@ import {
   createCameraState,
   resolveDisplayCameraState,
 } from '@/features/camera/types/camera-state';
-import { Button } from '@/shared/components/ui/button';
 
 export function CameraPreview() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -48,6 +53,7 @@ export function CameraPreview() {
   const isMountedRef = useRef(true);
   const isRequestingRef = useRef(false);
   const isSwitchingRef = useRef(false);
+  const isRestartingRef = useRef(false);
   const isManualStopRef = useRef(false);
   const operationGenerationRef = useRef(0);
 
@@ -59,6 +65,8 @@ export function CameraPreview() {
   const [deviceListError, setDeviceListError] =
     useState<CameraPresentationError | null>(null);
   const [switchError, setSwitchError] =
+    useState<CameraPresentationError | null>(null);
+  const [restartWarning, setRestartWarning] =
     useState<CameraPresentationError | null>(null);
   const [isRefreshingList, setIsRefreshingList] = useState(false);
 
@@ -109,12 +117,14 @@ export function CameraPreview() {
     setActiveDeviceId(null);
     setDeviceListError(null);
     setSwitchError(null);
+    setRestartWarning(null);
     setIsRefreshingList(false);
   }, []);
 
   const handleActiveDeviceRemoved = useCallback(() => {
     invalidateOperations();
     isSwitchingRef.current = false;
+    isRestartingRef.current = false;
     isRequestingRef.current = false;
     stopActiveStream();
     resetDeviceState();
@@ -173,7 +183,12 @@ export function CameraPreview() {
   }, []);
 
   const refreshDeviceList = useCallback(async () => {
-    if (isRefreshingList || isSwitchingRef.current) {
+    if (
+      isRefreshingList ||
+      isSwitchingRef.current ||
+      isRestartingRef.current ||
+      cameraState.status === 'paused'
+    ) {
       return;
     }
 
@@ -222,7 +237,12 @@ export function CameraPreview() {
         setIsRefreshingList(false);
       }
     }
-  }, [activeDeviceId, handleActiveDeviceRemoved, isRefreshingList]);
+  }, [
+    activeDeviceId,
+    cameraState.status,
+    handleActiveDeviceRemoved,
+    isRefreshingList,
+  ]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -233,6 +253,7 @@ export function CameraPreview() {
       invalidateOperations();
       isRequestingRef.current = false;
       isSwitchingRef.current = false;
+      isRestartingRef.current = false;
       stopActiveStream();
     };
   }, [invalidateOperations, stopActiveStream]);
@@ -260,13 +281,69 @@ export function CameraPreview() {
     };
   }, [cameraState.status, refreshDeviceList]);
 
-  async function handleActivateCamera() {
+  async function finalizeStreamActivation(
+    stream: MediaStream,
+    generation: number
+  ): Promise<boolean> {
+    if (
+      !isMountedRef.current ||
+      generation !== operationGenerationRef.current
+    ) {
+      stopMediaStream(stream);
+      return false;
+    }
+
+    if (stream.getAudioTracks().length > 0) {
+      stopMediaStream(stream);
+      setCameraState(
+        createCameraStateFromError(createUnexpectedAudioTrackError())
+      );
+      return false;
+    }
+
+    const videoElement = videoRef.current;
+
+    if (!videoElement) {
+      stopMediaStream(stream);
+      setCameraState(createCameraStateFromError(createPlaybackFailedError()));
+      return false;
+    }
+
+    try {
+      await attachStreamToVideo(videoElement, stream);
+    } catch {
+      stopMediaStream(stream, videoElement);
+      setCameraState(createCameraStateFromError(createPlaybackFailedError()));
+      return false;
+    }
+
+    if (
+      !isMountedRef.current ||
+      generation !== operationGenerationRef.current
+    ) {
+      stopMediaStream(stream, videoElement);
+      return false;
+    }
+
+    streamRef.current = stream;
+    isManualStopRef.current = false;
+    attachTrackEndedListener(stream);
+    setCameraState(createCameraState('active'));
+    setActiveDeviceId(getActiveDeviceIdFromStream(stream));
+    await loadDeviceList();
+    return true;
+  }
+
+  async function handleStartCamera() {
     if (
       isRequestingRef.current ||
       isSwitchingRef.current ||
+      isRestartingRef.current ||
       cameraState.status === 'active' ||
+      cameraState.status === 'paused' ||
       cameraState.status === 'requesting' ||
-      cameraState.status === 'switching'
+      cameraState.status === 'switching' ||
+      cameraState.status === 'restarting'
     ) {
       return;
     }
@@ -300,52 +377,7 @@ export function CameraPreview() {
 
     try {
       const stream = await requestVideoStream();
-
-      if (
-        !isMountedRef.current ||
-        generation !== operationGenerationRef.current
-      ) {
-        stopMediaStream(stream);
-        return;
-      }
-
-      if (stream.getAudioTracks().length > 0) {
-        stopMediaStream(stream);
-        setCameraState(
-          createCameraStateFromError(createUnexpectedAudioTrackError())
-        );
-        return;
-      }
-
-      const videoElement = videoRef.current;
-
-      if (!videoElement) {
-        stopMediaStream(stream);
-        setCameraState(createCameraStateFromError(createPlaybackFailedError()));
-        return;
-      }
-
-      try {
-        await attachStreamToVideo(videoElement, stream);
-      } catch {
-        stopMediaStream(stream, videoElement);
-        setCameraState(createCameraStateFromError(createPlaybackFailedError()));
-        return;
-      }
-
-      if (
-        !isMountedRef.current ||
-        generation !== operationGenerationRef.current
-      ) {
-        stopMediaStream(stream, videoElement);
-        return;
-      }
-
-      streamRef.current = stream;
-      attachTrackEndedListener(stream);
-      setCameraState(createCameraState('active'));
-      setActiveDeviceId(getActiveDeviceIdFromStream(stream));
-      await loadDeviceList();
+      await finalizeStreamActivation(stream, generation);
     } catch (error) {
       if (
         !isMountedRef.current ||
@@ -363,11 +395,146 @@ export function CameraPreview() {
     }
   }
 
+  function handlePauseCamera() {
+    if (
+      isRequestingRef.current ||
+      isSwitchingRef.current ||
+      isRestartingRef.current ||
+      cameraState.status !== 'active'
+    ) {
+      return;
+    }
+
+    const stream = streamRef.current;
+
+    if (!stream || !isVideoTrackPausable(stream)) {
+      return;
+    }
+
+    if (!pauseVideoTrack(stream)) {
+      handleActiveDeviceRemoved();
+      return;
+    }
+
+    setRestartWarning(null);
+    setSwitchError(null);
+    setCameraState(createCameraState('paused'));
+  }
+
+  function handleResumeCamera() {
+    if (
+      isRequestingRef.current ||
+      isSwitchingRef.current ||
+      isRestartingRef.current ||
+      cameraState.status !== 'paused'
+    ) {
+      return;
+    }
+
+    const stream = streamRef.current;
+
+    if (!stream) {
+      setCameraState(createCameraState('idle'));
+      return;
+    }
+
+    if (!isVideoTrackResumable(stream)) {
+      invalidateOperations();
+      isManualStopRef.current = true;
+      stopActiveStream();
+      setCameraState(
+        createCameraState('idle', createDeviceDisconnectedError())
+      );
+      return;
+    }
+
+    if (!resumeVideoTrack(stream)) {
+      handleActiveDeviceRemoved();
+      return;
+    }
+
+    setCameraState(createCameraState('active'));
+  }
+
+  async function handleRestartCamera() {
+    if (
+      isRestartingRef.current ||
+      isRequestingRef.current ||
+      isSwitchingRef.current ||
+      (cameraState.status !== 'active' && cameraState.status !== 'paused')
+    ) {
+      return;
+    }
+
+    if (!isMediaDevicesApiAvailable()) {
+      return;
+    }
+
+    const savedDeviceId = activeDeviceId;
+    const generation = ++operationGenerationRef.current;
+    isManualStopRef.current = true;
+    isRestartingRef.current = true;
+    setRestartWarning(null);
+    setSwitchError(null);
+    detachTrackEndedListener();
+    stopActiveStream();
+    setCameraState(createCameraState('restarting'));
+
+    try {
+      let stream: MediaStream;
+      let usedDefaultFallback = false;
+
+      try {
+        stream = savedDeviceId
+          ? await requestVideoStreamForDevice(savedDeviceId)
+          : await requestVideoStream();
+      } catch (error) {
+        if (savedDeviceId && isMissingDeviceError(error)) {
+          await loadDeviceList();
+          stream = await requestVideoStream();
+          usedDefaultFallback = true;
+        } else {
+          throw error;
+        }
+      }
+
+      const activated = await finalizeStreamActivation(stream, generation);
+
+      if (!activated) {
+        return;
+      }
+
+      if (
+        usedDefaultFallback &&
+        generation === operationGenerationRef.current
+      ) {
+        setRestartWarning(createDeviceUnavailableRestartWarning());
+      }
+    } catch (error) {
+      if (
+        !isMountedRef.current ||
+        generation !== operationGenerationRef.current
+      ) {
+        return;
+      }
+
+      stopActiveStream();
+      setActiveDeviceId(null);
+      const presentationError = await classifyGetUserMediaError(error);
+      setCameraState(createCameraStateFromError(presentationError));
+    } finally {
+      if (generation === operationGenerationRef.current) {
+        isRestartingRef.current = false;
+      }
+    }
+  }
+
   async function handleSwitchDevice(selectedDeviceId: string) {
     if (
       !selectedDeviceId ||
       selectedDeviceId === activeDeviceId ||
       isSwitchingRef.current ||
+      isRestartingRef.current ||
       isRequestingRef.current ||
       cameraState.status !== 'active'
     ) {
@@ -381,6 +548,7 @@ export function CameraPreview() {
     const generation = ++operationGenerationRef.current;
     isSwitchingRef.current = true;
     setSwitchError(null);
+    setRestartWarning(null);
     setCameraState(createCameraState('switching'));
 
     const previousStream = streamRef.current;
@@ -481,11 +649,12 @@ export function CameraPreview() {
     }
   }
 
-  function handleDeactivateCamera() {
+  function handleStopCamera() {
     invalidateOperations();
     isManualStopRef.current = true;
     isRequestingRef.current = false;
     isSwitchingRef.current = false;
+    isRestartingRef.current = false;
     stopActiveStream();
     resetDeviceState();
     setCameraState(createCameraState('idle'));
@@ -493,7 +662,7 @@ export function CameraPreview() {
 
   function handleRetry() {
     setCameraState(createCameraState('idle'));
-    void handleActivateCamera();
+    void handleStartCamera();
   }
 
   function handleRefreshDeviceList() {
@@ -502,8 +671,11 @@ export function CameraPreview() {
 
   const isPreviewVisible =
     displayState.status === 'active' || displayState.status === 'switching';
+  const isPaused = displayState.status === 'paused';
+  const isRestarting = displayState.status === 'restarting';
   const isRequesting = displayState.status === 'requesting';
   const isSwitching = displayState.status === 'switching';
+  const operationInProgress = isRequesting || isSwitching || isRestarting;
   const primaryError = displayState.error;
   const showActivate = displayState.status === 'idle';
   const showPrimaryRetry =
@@ -513,13 +685,25 @@ export function CameraPreview() {
       displayState.status === 'error' ||
       displayState.status === 'unavailable' ||
       displayState.status === 'idle');
+  const hasActiveOrPausedStream =
+    displayState.status === 'active' ||
+    displayState.status === 'paused' ||
+    displayState.status === 'switching' ||
+    displayState.status === 'restarting';
   const showDeviceSelector =
     isMediaDevicesApiAvailable() &&
-    (displayState.status === 'active' || displayState.status === 'switching');
+    (displayState.status === 'active' ||
+      displayState.status === 'switching' ||
+      displayState.status === 'paused');
   const showRefreshButton =
     showDeviceSelector &&
+    displayState.status !== 'paused' &&
     (deviceListError !== null || !supportsDeviceChangeEvent());
   const statusLabel = CAMERA_STATUS_LABELS[displayState.status];
+  const canPause = displayState.status === 'active';
+  const canResume = displayState.status === 'paused';
+  const canRestart = hasActiveOrPausedStream;
+  const canStop = hasActiveOrPausedStream;
 
   return (
     <div className="mt-8 space-y-6">
@@ -541,13 +725,48 @@ export function CameraPreview() {
         <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/50">
           {!isPreviewVisible ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4 text-center">
-              <VideoOff aria-hidden="true" className="size-8 text-zinc-500" />
-              <p className="text-sm text-zinc-400">A câmera está desligada</p>
-              <p className="text-sm text-zinc-500">
-                {displayState.status === 'unavailable'
-                  ? 'Verifique o navegador, a permissão e a conexão segura antes de tentar novamente.'
-                  : 'Selecione "Ativar câmera" para solicitar permissão.'}
-              </p>
+              {isPaused ? (
+                <>
+                  <Pause aria-hidden="true" className="size-8 text-zinc-500" />
+                  <p className="text-sm font-medium text-zinc-300">
+                    Câmera pausada
+                  </p>
+                  <p className="text-sm text-zinc-400">
+                    A prévia foi interrompida temporariamente. O stream continua
+                    em memória — selecione Retomar para reutilizá-lo sem nova
+                    permissão. Para liberar completamente a câmera, use Encerrar
+                    câmera.
+                  </p>
+                </>
+              ) : isRestarting ? (
+                <>
+                  <VideoOff
+                    aria-hidden="true"
+                    className="size-8 text-zinc-500"
+                  />
+                  <p className="text-sm font-medium text-zinc-300">
+                    Reiniciando câmera...
+                  </p>
+                  <p className="text-sm text-zinc-400">
+                    Aguarde enquanto um novo stream é solicitado.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <VideoOff
+                    aria-hidden="true"
+                    className="size-8 text-zinc-500"
+                  />
+                  <p className="text-sm text-zinc-400">
+                    A câmera está desligada
+                  </p>
+                  <p className="text-sm text-zinc-500">
+                    {displayState.status === 'unavailable'
+                      ? 'Verifique o navegador, a permissão e a conexão segura antes de tentar novamente.'
+                      : 'Selecione "Iniciar câmera" para solicitar permissão.'}
+                  </p>
+                </>
+              )}
             </div>
           ) : null}
 
@@ -567,14 +786,24 @@ export function CameraPreview() {
         {primaryError ? (
           <CameraErrorMessage
             error={primaryError}
-            isRetryDisabled={isRequesting || isSwitching}
+            isRetryDisabled={operationInProgress}
             streamActive={isPreviewVisible}
             onRetry={showPrimaryRetry ? handleRetry : undefined}
           />
         ) : null}
 
         {switchError ? (
-          <CameraErrorMessage error={switchError} streamActive />
+          <CameraErrorMessage
+            error={switchError}
+            streamActive={isPreviewVisible}
+          />
+        ) : null}
+
+        {restartWarning ? (
+          <CameraErrorMessage
+            error={restartWarning}
+            streamActive={isPreviewVisible}
+          />
         ) : null}
       </section>
 
@@ -582,7 +811,7 @@ export function CameraPreview() {
         <CameraDeviceSelect
           activeDeviceId={activeDeviceId}
           devices={devices}
-          disabled={false}
+          disabled={displayState.status === 'paused'}
           isRefreshingList={isRefreshingList}
           isSwitching={isSwitching}
           listError={deviceListError}
@@ -594,49 +823,43 @@ export function CameraPreview() {
         />
       ) : null}
 
+      {displayState.status === 'paused' ? (
+        <p className="text-sm text-zinc-400">
+          Retome a câmera antes de trocar de dispositivo.
+        </p>
+      ) : null}
+
       {deviceListError ? (
         <CameraErrorMessage
           error={deviceListError}
-          isRefreshDisabled={isRefreshingList || isSwitching}
+          isRefreshDisabled={isRefreshingList || isSwitching || isRestarting}
           streamActive={isPreviewVisible}
           onRefreshDevices={handleRefreshDeviceList}
         />
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        {showActivate ? (
-          <Button
-            type="button"
-            disabled={isRequesting}
-            size="lg"
-            className="min-h-11 w-full sm:w-auto"
-            onClick={() => {
-              void handleActivateCamera();
-            }}
-          >
-            {isRequesting ? 'Solicitando permissão...' : 'Ativar câmera'}
-          </Button>
-        ) : null}
-
-        {isPreviewVisible ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="min-h-11 w-full sm:w-auto"
-            onClick={handleDeactivateCamera}
-          >
-            Desligar câmera
-          </Button>
-        ) : null}
-
-        <Link
-          href="/play/setup"
-          className="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-700 bg-transparent px-4 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-zinc-50 focus-visible:ring-3 focus-visible:ring-zinc-400/50 focus-visible:outline-none sm:w-auto"
-        >
-          Voltar para a preparação
-        </Link>
-      </div>
+      <CameraControls
+        canPause={canPause}
+        canRestart={canRestart}
+        canResume={canResume}
+        canStop={canStop}
+        isRequesting={isRequesting}
+        isRestarting={isRestarting}
+        isSwitching={isSwitching}
+        showActivate={showActivate}
+        showPrimaryRetry={showPrimaryRetry}
+        status={displayState.status}
+        onPause={handlePauseCamera}
+        onRestart={() => {
+          void handleRestartCamera();
+        }}
+        onResume={handleResumeCamera}
+        onRetry={handleRetry}
+        onStart={() => {
+          void handleStartCamera();
+        }}
+        onStop={handleStopCamera}
+      />
     </div>
   );
 }

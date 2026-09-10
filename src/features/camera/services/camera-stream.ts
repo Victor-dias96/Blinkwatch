@@ -65,3 +65,51 @@ export function getPrimaryVideoTrack(
 ): MediaStreamTrack | null {
   return stream.getVideoTracks()[0] ?? null;
 }
+
+export function isVideoTrackLive(
+  track: MediaStreamTrack | null
+): track is MediaStreamTrack {
+  return track !== null && track.readyState === 'live';
+}
+
+export function isVideoTrackPausable(stream: MediaStream): boolean {
+  const track = getPrimaryVideoTrack(stream);
+
+  if (!isVideoTrackLive(track)) {
+    return false;
+  }
+
+  return track.enabled;
+}
+
+export function isVideoTrackResumable(stream: MediaStream): boolean {
+  const track = getPrimaryVideoTrack(stream);
+
+  if (!isVideoTrackLive(track)) {
+    return false;
+  }
+
+  return !track.enabled;
+}
+
+export function pauseVideoTrack(stream: MediaStream): boolean {
+  const track = getPrimaryVideoTrack(stream);
+
+  if (!isVideoTrackLive(track)) {
+    return false;
+  }
+
+  track.enabled = false;
+  return track.enabled === false;
+}
+
+export function resumeVideoTrack(stream: MediaStream): boolean {
+  const track = getPrimaryVideoTrack(stream);
+
+  if (!isVideoTrackLive(track)) {
+    return false;
+  }
+
+  track.enabled = true;
+  return track.enabled === true && track.readyState === 'live';
+}
