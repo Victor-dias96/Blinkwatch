@@ -29,16 +29,20 @@ Introduzir a experiência pública do jogador e preparar o caminho para configur
 
 ### Entregue nesta fase
 
-| Item                          | Estado       | Referência                                  |
-| ----------------------------- | ------------ | ------------------------------------------- |
-| Tela inicial pública          | Implementado | `src/app/page.tsx`, `src/features/landing/` |
-| Navegação para preparação     | Implementado | Ação principal em `/` → `/play/setup`       |
-| Rota de preparação da câmera  | Implementado | `src/app/play/setup/page.tsx`               |
-| Componente Button (shadcn/ui) | Implementado | `src/shared/components/ui/button.tsx`       |
+| Item                          | Estado       | Referência                                                    |
+| ----------------------------- | ------------ | ------------------------------------------------------------- |
+| Tela inicial pública          | Implementado | `src/app/page.tsx`, `src/features/landing/`                   |
+| Navegação para preparação     | Implementado | Ação principal em `/` → `/play/setup`                         |
+| Fluxo de consentimento        | Implementado | `src/app/play/setup/page.tsx`, `src/features/camera-consent/` |
+| Rota de transição da câmera   | Implementado | `src/app/play/camera/page.tsx`                                |
+| Componente Button (shadcn/ui) | Implementado | `src/shared/components/ui/button.tsx`                         |
+| Componentes Checkbox e Label  | Implementado | `src/shared/components/ui/checkbox.tsx`, `label.tsx`          |
+
+O consentimento exige uma ação explícita (checkbox) antes de avançar para `/play/camera`. **Não é persistido** — recarregar `/play/setup` reinicia o estado. Nenhuma permissão nativa de câmera é solicitada nesta fase.
 
 ### Ainda não implementado na Milestone 2
 
-- Acesso à câmera e fluxo de consentimento completo
+- Acesso à câmera (`getUserMedia`) — previsto na Issue 15
 - Integração com MediaPipe
 - Rastreamento facial ou ocular
 - Detecção de piscadas e calibração do jogador
@@ -51,7 +55,7 @@ Os itens abaixo fazem parte da visão do produto, mas **não existem no código*
 
 - Salas e sincronização em tempo real
 - Painel do mestre
-- Rotas `master`, `room` e `api` (além de `play/setup`)
+- Rotas `master`, `room` e `api` (além de `play/setup` e `play/camera`)
 - Persistência em banco de dados
 - Autenticação
 - Framework de testes (Vitest, Testing Library, Playwright ou equivalentes)
@@ -64,8 +68,9 @@ Os itens abaixo fazem parte da visão do produto, mas **não existem no código*
 Ao executar `npm run dev` e acessar [http://localhost:3000](http://localhost:3000):
 
 1. A **página inicial** apresenta a proposta do Blinkwatch, um resumo de privacidade e a ação **Iniciar experiência**.
-2. A ação leva para **`/play/setup`**, uma tela de preparação que informa que nenhuma permissão de câmera foi solicitada ainda.
-3. **Não há** interação com câmera, detecção visual ou multiplayer.
+2. A ação leva para **`/play/setup`**, uma etapa de consentimento com explicações sobre uso futuro da câmera, checkbox explícito e botão **Continuar** (desabilitado até o aceite).
+3. Após marcar o consentimento e continuar, o participante chega a **`/play/camera`**, tela de transição que informa que a câmera ainda não foi ativada.
+4. **Não há** solicitação de permissão nativa, processamento de vídeo, detecção visual ou multiplayer.
 
 ## Próximas fases (planejamento)
 
