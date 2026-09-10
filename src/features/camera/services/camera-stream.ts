@@ -20,8 +20,29 @@ export function isMediaDevicesSupported(): boolean {
   );
 }
 
+export function createDeviceVideoConstraints(
+  deviceId: string
+): MediaStreamConstraints {
+  return {
+    video: {
+      deviceId: {
+        exact: deviceId,
+      },
+    },
+    audio: false,
+  };
+}
+
 export function requestVideoStream(): Promise<MediaStream> {
   return navigator.mediaDevices.getUserMedia(VIDEO_ONLY_CONSTRAINTS);
+}
+
+export function requestVideoStreamForDevice(
+  deviceId: string
+): Promise<MediaStream> {
+  return navigator.mediaDevices.getUserMedia(
+    createDeviceVideoConstraints(deviceId)
+  );
 }
 
 export function stopMediaStream(
@@ -101,3 +122,22 @@ export function classifyGetUserMediaError(error: unknown): CameraState {
 
 export const MEDIA_DEVICES_UNAVAILABLE_MESSAGE =
   'Seu navegador não disponibiliza acesso à câmera neste contexto. Utilize um navegador compatível e, se necessário, acesse por HTTPS ou localhost.';
+
+export function classifySwitchDeviceError(error: unknown): string {
+  if (!(error instanceof DOMException)) {
+    return 'Não foi possível trocar de câmera. A câmera anterior continuará ativa.';
+  }
+
+  switch (error.name) {
+    case 'NotFoundError':
+      return 'A câmera selecionada não está mais disponível.';
+    case 'NotReadableError':
+      return 'A câmera selecionada não pôde ser iniciada. Outro aplicativo pode estar utilizando o dispositivo.';
+    case 'OverconstrainedError':
+      return 'A câmera selecionada não pôde atender à configuração solicitada.';
+    case 'NotAllowedError':
+      return 'O navegador não permitiu utilizar a câmera selecionada.';
+    default:
+      return 'Não foi possível trocar de câmera. A câmera anterior continuará ativa.';
+  }
+}

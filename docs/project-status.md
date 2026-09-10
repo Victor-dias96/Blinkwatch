@@ -29,25 +29,27 @@ Introduzir a experiência pública do jogador e preparar o caminho para configur
 
 ### Entregue nesta fase
 
-| Item                            | Estado       | Referência                                                    |
-| ------------------------------- | ------------ | ------------------------------------------------------------- |
-| Tela inicial pública            | Implementado | `src/app/page.tsx`, `src/features/landing/`                   |
-| Navegação para preparação       | Implementado | Ação principal em `/` → `/play/setup`                         |
-| Fluxo de consentimento          | Implementado | `src/app/play/setup/page.tsx`, `src/features/camera-consent/` |
-| Rota de câmera com prévia local | Implementado | `src/app/play/camera/page.tsx`, `src/features/camera/`        |
-| Componente Button (shadcn/ui)   | Implementado | `src/shared/components/ui/button.tsx`                         |
-| Componentes Checkbox e Label    | Implementado | `src/shared/components/ui/checkbox.tsx`, `label.tsx`          |
+| Item                             | Estado       | Referência                                                    |
+| -------------------------------- | ------------ | ------------------------------------------------------------- |
+| Tela inicial pública             | Implementado | `src/app/page.tsx`, `src/features/landing/`                   |
+| Navegação para preparação        | Implementado | Ação principal em `/` → `/play/setup`                         |
+| Fluxo de consentimento           | Implementado | `src/app/play/setup/page.tsx`, `src/features/camera-consent/` |
+| Rota de câmera com prévia local  | Implementado | `src/app/play/camera/page.tsx`, `src/features/camera/`        |
+| Seleção de dispositivo de câmera | Implementado | `src/features/camera/components/CameraDeviceSelect.tsx`       |
+| Componente Button (shadcn/ui)    | Implementado | `src/shared/components/ui/button.tsx`                         |
+| Componentes Checkbox e Label     | Implementado | `src/shared/components/ui/checkbox.tsx`, `label.tsx`          |
 
 O consentimento exige uma ação explícita (checkbox) antes de avançar para `/play/camera`. **Não é persistido** — recarregar `/play/setup` reinicia o estado.
 
 O acesso inicial à câmera em `/play/camera` utiliza `getUserMedia` **somente após** o participante selecionar **Ativar câmera**. A solicitação pede **apenas vídeo** (`audio: false`); a prévia é exibida localmente via `HTMLVideoElement` e pode ser encerrada com **Desligar câmera**. Todas as tracks recebem `stop()` no desligamento manual e no cleanup ao sair da rota. A câmera **não** é ativada automaticamente ao carregar a página.
+
+Após a permissão, o participante pode **enumerar câmeras disponíveis** (`videoinput` apenas), **identificar a câmera ativa** via `MediaStreamTrack.getSettings().deviceId`, **selecionar outro dispositivo** e **trocar o stream** sem recarregar a página. A troca solicita o novo stream antes de encerrar o anterior; falhas preservam a prévia anterior quando possível. O evento `devicechange` atualiza a lista quando suportado. **Nenhum** `deviceId`, label ou preferência de câmera é persistido.
 
 ### Ainda não implementado na Milestone 2
 
 - Integração com MediaPipe
 - Rastreamento facial ou ocular
 - Detecção de piscadas e calibração do jogador
-- Seleção de dispositivo de câmera
 
 ## Fora de escopo (visão de produto)
 
@@ -69,8 +71,8 @@ Ao executar `npm run dev` e acessar [http://localhost:3000](http://localhost:300
 
 1. A **página inicial** apresenta a proposta do Blinkwatch, um resumo de privacidade e a ação **Iniciar experiência**.
 2. A ação leva para **`/play/setup`**, uma etapa de consentimento com explicações sobre uso futuro da câmera, checkbox explícito e botão **Continuar** (desabilitado até o aceite).
-3. Após marcar o consentimento e continuar, o participante chega a **`/play/camera`**, onde pode ativar a câmera explicitamente, visualizar a prévia local e desligá-la.
-4. **Não há** processamento de visão computacional, detecção visual, transmissão de vídeo ou multiplayer.
+3. Após marcar o consentimento e continuar, o participante chega a **`/play/camera`**, onde pode ativar a câmera explicitamente, visualizar a prévia local, escolher entre câmeras disponíveis e desligá-la.
+4. **Não há** processamento de visão computacional, detecção visual, análise facial, transmissão de vídeo ou multiplayer.
 
 ## Próximas fases (planejamento)
 

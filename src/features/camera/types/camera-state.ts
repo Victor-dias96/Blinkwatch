@@ -1,5 +1,11 @@
 export type CameraStatus =
-  'idle' | 'requesting' | 'active' | 'denied' | 'unavailable' | 'error';
+  | 'idle'
+  | 'requesting'
+  | 'active'
+  | 'switching'
+  | 'denied'
+  | 'unavailable'
+  | 'error';
 
 export type CameraState = {
   status: CameraStatus;
@@ -10,6 +16,7 @@ export const CAMERA_STATUS_LABELS: Record<CameraStatus, string> = {
   idle: 'Câmera desligada',
   requesting: 'Aguardando permissão',
   active: 'Câmera ativa',
+  switching: 'Trocando câmera',
   denied: 'Permissão negada',
   unavailable: 'Câmera indisponível',
   error: 'Falha ao iniciar',
