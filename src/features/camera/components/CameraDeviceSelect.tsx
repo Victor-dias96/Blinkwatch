@@ -1,5 +1,6 @@
 'use client';
 
+import type { CameraPresentationError } from '@/features/camera/errors/camera-error';
 import type { CameraDeviceOption } from '@/features/camera/services/camera-devices';
 import { Button } from '@/shared/components/ui/button';
 import { Label } from '@/shared/components/ui/label';
@@ -11,7 +12,7 @@ type CameraDeviceSelectProps = {
   activeDeviceId: string | null;
   disabled: boolean;
   isSwitching: boolean;
-  listError: string | null;
+  listError: CameraPresentationError | null;
   isRefreshingList: boolean;
   showRefreshButton: boolean;
   onDeviceChange: (deviceId: string) => void;
@@ -77,10 +78,6 @@ export function CameraDeviceSelect({
         <p className="text-sm text-zinc-400">
           A lista de câmeras não pôde ser determinada. A prévia continua ativa.
         </p>
-      ) : null}
-
-      {listError ? (
-        <p className="text-sm leading-relaxed text-zinc-300">{listError}</p>
       ) : null}
 
       {isSwitching ? (

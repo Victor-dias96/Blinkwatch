@@ -36,6 +36,7 @@ Introduzir a experiência pública do jogador e preparar o caminho para configur
 | Fluxo de consentimento           | Implementado | `src/app/play/setup/page.tsx`, `src/features/camera-consent/` |
 | Rota de câmera com prévia local  | Implementado | `src/app/play/camera/page.tsx`, `src/features/camera/`        |
 | Seleção de dispositivo de câmera | Implementado | `src/features/camera/components/CameraDeviceSelect.tsx`       |
+| Tratamento de erros da câmera    | Implementado | `src/features/camera/errors/camera-error.ts`                  |
 | Componente Button (shadcn/ui)    | Implementado | `src/shared/components/ui/button.tsx`                         |
 | Componentes Checkbox e Label     | Implementado | `src/shared/components/ui/checkbox.tsx`, `label.tsx`          |
 
@@ -44,6 +45,8 @@ O consentimento exige uma ação explícita (checkbox) antes de avançar para `/
 O acesso inicial à câmera em `/play/camera` utiliza `getUserMedia` **somente após** o participante selecionar **Ativar câmera**. A solicitação pede **apenas vídeo** (`audio: false`); a prévia é exibida localmente via `HTMLVideoElement` e pode ser encerrada com **Desligar câmera**. Todas as tracks recebem `stop()` no desligamento manual e no cleanup ao sair da rota. A câmera **não** é ativada automaticamente ao carregar a página.
 
 Após a permissão, o participante pode **enumerar câmeras disponíveis** (`videoinput` apenas), **identificar a câmera ativa** via `MediaStreamTrack.getSettings().deviceId`, **selecionar outro dispositivo** e **trocar o stream** sem recarregar a página. A troca solicita o novo stream antes de encerrar o anterior; falhas preservam a prévia anterior quando possível. O evento `devicechange` atualiza a lista quando suportado. **Nenhum** `deviceId`, label ou preferência de câmera é persistido.
+
+O **tratamento de erros** consolida falhas em códigos internos estáveis com mensagens em português, orientação de recuperação e retry explícito quando adequado. Contexto inseguro e API indisponível são detectados antes de solicitar a câmera. Permissão negada e bloqueada são distinguidas quando a Permissions API permite. Falhas de enumeração exibem aviso sem interromper a prévia. Falhas de troca preservam o stream anterior quando a track permanece `live`. Desconexão inesperada de dispositivo é detectada via evento `ended` da track. Detalhes técnicos sensíveis não são exibidos nem enviados externamente. Ver [`development/camera-errors.md`](development/camera-errors.md).
 
 ### Ainda não implementado na Milestone 2
 

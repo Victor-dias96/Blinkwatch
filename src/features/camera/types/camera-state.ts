@@ -1,3 +1,10 @@
+import {
+  type CameraPresentationError,
+  createPreActivationError,
+  isMediaDevicesApiAvailable,
+  isSecureBrowserContext,
+} from '@/features/camera/errors/camera-error';
+
 export type CameraStatus =
   | 'idle'
   | 'requesting'
@@ -9,7 +16,7 @@ export type CameraStatus =
 
 export type CameraState = {
   status: CameraStatus;
-  message: string | null;
+  error: CameraPresentationError | null;
 };
 
 export const CAMERA_STATUS_LABELS: Record<CameraStatus, string> = {
@@ -24,21 +31,26 @@ export const CAMERA_STATUS_LABELS: Record<CameraStatus, string> = {
 
 export function createCameraState(
   status: CameraStatus,
-  message: string | null = null
+  error: CameraPresentationError | null = null
 ): CameraState {
-  return { status, message };
+  return { status, error };
 }
 
-export function resolveDisplayCameraState(
-  state: CameraState,
-  mediaDevicesSupported: boolean,
-  unavailableMessage: string
-): CameraState {
-  if (
-    !mediaDevicesSupported &&
-    (state.status === 'idle' || state.status === 'requesting')
-  ) {
-    return createCameraState('unavailable', unavailableMessage);
+export function resolveDisplayCameraState(state: CameraState): CameraState {
+  if (state.status === 'idle' || state.status === 'requesting') {
+    if (!isSecureBrowserContext()) {
+      return createCameraState(
+        'unavailable',
+        createPreActivationError('insecure-context')
+      );
+    }
+
+    if (!isMediaDevicesApiAvailable()) {
+      return createCameraState(
+        'unavailable',
+        createPreActivationError('unsupported')
+      );
+    }
   }
 
   return state;

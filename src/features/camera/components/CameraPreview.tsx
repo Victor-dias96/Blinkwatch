@@ -1,17 +1,25 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { VideoOff } from 'lucide-react';
 
 import { CameraDeviceSelect } from '@/features/camera/components/CameraDeviceSelect';
+import { CameraErrorMessage } from '@/features/camera/components/CameraErrorMessage';
+import {
+  type CameraPresentationError,
+  classifyGetUserMediaError,
+  classifySwitchDeviceError,
+  createCameraStateFromError,
+  createDeviceDisconnectedError,
+  createEnumerationFailedError,
+  createPlaybackFailedError,
+  createPreActivationError,
+  createUnexpectedAudioTrackError,
+  isMediaDevicesApiAvailable,
+  isSecureBrowserContext,
+} from '@/features/camera/errors/camera-error';
 import {
   type CameraDeviceOption,
   enumerateVideoInputDevices,
@@ -20,10 +28,7 @@ import {
 } from '@/features/camera/services/camera-devices';
 import {
   attachStreamToVideo,
-  classifyGetUserMediaError,
-  classifySwitchDeviceError,
-  isMediaDevicesSupported,
-  MEDIA_DEVICES_UNAVAILABLE_MESSAGE,
+  getPrimaryVideoTrack,
   requestVideoStream,
   requestVideoStreamForDevice,
   stopMediaStream,
@@ -36,30 +41,14 @@ import {
 } from '@/features/camera/types/camera-state';
 import { Button } from '@/shared/components/ui/button';
 
-const DEVICE_LIST_ERROR_MESSAGE =
-  'Não foi possível carregar a lista de câmeras.';
-
-const ACTIVE_DEVICE_DISCONNECTED_MESSAGE =
-  'A câmera em uso foi desconectada. Ative ou selecione outra câmera.';
-
-function subscribeToMediaDevicesAvailability() {
-  return () => {};
-}
-
-function getMediaDevicesAvailabilitySnapshot() {
-  return isMediaDevicesSupported();
-}
-
-function getMediaDevicesAvailabilityServerSnapshot() {
-  return true;
-}
-
 export function CameraPreview() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const trackEndedHandlerRef = useRef<(() => void) | null>(null);
   const isMountedRef = useRef(true);
   const isRequestingRef = useRef(false);
   const isSwitchingRef = useRef(false);
+  const isManualStopRef = useRef(false);
   const operationGenerationRef = useRef(0);
 
   const [cameraState, setCameraState] = useState<CameraState>(
@@ -67,26 +56,39 @@ export function CameraPreview() {
   );
   const [devices, setDevices] = useState<CameraDeviceOption[]>([]);
   const [activeDeviceId, setActiveDeviceId] = useState<string | null>(null);
-  const [deviceListError, setDeviceListError] = useState<string | null>(null);
-  const [switchMessage, setSwitchMessage] = useState<string | null>(null);
+  const [deviceListError, setDeviceListError] =
+    useState<CameraPresentationError | null>(null);
+  const [switchError, setSwitchError] =
+    useState<CameraPresentationError | null>(null);
   const [isRefreshingList, setIsRefreshingList] = useState(false);
 
-  const mediaDevicesSupported = useSyncExternalStore(
-    subscribeToMediaDevicesAvailability,
-    getMediaDevicesAvailabilitySnapshot,
-    getMediaDevicesAvailabilityServerSnapshot
-  );
-  const displayState = resolveDisplayCameraState(
-    cameraState,
-    mediaDevicesSupported,
-    MEDIA_DEVICES_UNAVAILABLE_MESSAGE
-  );
+  const displayState = resolveDisplayCameraState(cameraState);
 
   const invalidateOperations = useCallback(() => {
     operationGenerationRef.current += 1;
   }, []);
 
+  const detachTrackEndedListener = useCallback(() => {
+    const stream = streamRef.current;
+    const handler = trackEndedHandlerRef.current;
+
+    if (!stream || !handler) {
+      trackEndedHandlerRef.current = null;
+      return;
+    }
+
+    const track = getPrimaryVideoTrack(stream);
+
+    if (track) {
+      track.removeEventListener('ended', handler);
+    }
+
+    trackEndedHandlerRef.current = null;
+  }, []);
+
   const stopActiveStream = useCallback(() => {
+    detachTrackEndedListener();
+
     const videoElement = videoRef.current;
     const streamFromRef = streamRef.current;
     const streamFromVideo =
@@ -100,18 +102,53 @@ export function CameraPreview() {
     if (streamFromVideo && streamFromVideo !== streamFromRef) {
       stopMediaStream(streamFromVideo, videoElement);
     }
-  }, []);
+  }, [detachTrackEndedListener]);
 
   const resetDeviceState = useCallback(() => {
     setDevices([]);
     setActiveDeviceId(null);
     setDeviceListError(null);
-    setSwitchMessage(null);
+    setSwitchError(null);
     setIsRefreshingList(false);
   }, []);
 
+  const handleActiveDeviceRemoved = useCallback(() => {
+    invalidateOperations();
+    isSwitchingRef.current = false;
+    isRequestingRef.current = false;
+    stopActiveStream();
+    resetDeviceState();
+
+    const error = createDeviceDisconnectedError();
+    setCameraState(createCameraState('idle', error));
+  }, [invalidateOperations, resetDeviceState, stopActiveStream]);
+
+  const attachTrackEndedListener = useCallback(
+    (stream: MediaStream) => {
+      detachTrackEndedListener();
+
+      const track = getPrimaryVideoTrack(stream);
+
+      if (!track) {
+        return;
+      }
+
+      const handleTrackEnded = () => {
+        if (isManualStopRef.current) {
+          return;
+        }
+
+        handleActiveDeviceRemoved();
+      };
+
+      trackEndedHandlerRef.current = handleTrackEnded;
+      track.addEventListener('ended', handleTrackEnded);
+    },
+    [detachTrackEndedListener, handleActiveDeviceRemoved]
+  );
+
   const loadDeviceList = useCallback(async (): Promise<boolean> => {
-    if (!isMediaDevicesSupported()) {
+    if (!isMediaDevicesApiAvailable()) {
       return false;
     }
 
@@ -130,28 +167,17 @@ export function CameraPreview() {
         return false;
       }
 
-      setDeviceListError(DEVICE_LIST_ERROR_MESSAGE);
+      setDeviceListError(createEnumerationFailedError());
       return false;
     }
   }, []);
-
-  const handleActiveDeviceRemoved = useCallback(() => {
-    invalidateOperations();
-    isSwitchingRef.current = false;
-    isRequestingRef.current = false;
-    stopActiveStream();
-    resetDeviceState();
-    setCameraState(
-      createCameraState('idle', ACTIVE_DEVICE_DISCONNECTED_MESSAGE)
-    );
-  }, [invalidateOperations, resetDeviceState, stopActiveStream]);
 
   const refreshDeviceList = useCallback(async () => {
     if (isRefreshingList || isSwitchingRef.current) {
       return;
     }
 
-    if (!isMediaDevicesSupported()) {
+    if (!isMediaDevicesApiAvailable()) {
       return;
     }
 
@@ -167,7 +193,7 @@ export function CameraPreview() {
           return;
         }
 
-        setDeviceListError(DEVICE_LIST_ERROR_MESSAGE);
+        setDeviceListError(createEnumerationFailedError());
         return;
       }
 
@@ -203,6 +229,7 @@ export function CameraPreview() {
 
     return () => {
       isMountedRef.current = false;
+      isManualStopRef.current = true;
       invalidateOperations();
       isRequestingRef.current = false;
       isSwitchingRef.current = false;
@@ -244,14 +271,28 @@ export function CameraPreview() {
       return;
     }
 
-    if (!isMediaDevicesSupported()) {
+    if (!isSecureBrowserContext()) {
       setCameraState(
-        createCameraState('unavailable', MEDIA_DEVICES_UNAVAILABLE_MESSAGE)
+        createCameraState(
+          'unavailable',
+          createPreActivationError('insecure-context')
+        )
+      );
+      return;
+    }
+
+    if (!isMediaDevicesApiAvailable()) {
+      setCameraState(
+        createCameraState(
+          'unavailable',
+          createPreActivationError('unsupported')
+        )
       );
       return;
     }
 
     const generation = ++operationGenerationRef.current;
+    isManualStopRef.current = false;
     isRequestingRef.current = true;
     stopActiveStream();
     resetDeviceState();
@@ -271,10 +312,7 @@ export function CameraPreview() {
       if (stream.getAudioTracks().length > 0) {
         stopMediaStream(stream);
         setCameraState(
-          createCameraState(
-            'error',
-            'Não foi possível ativar a câmera. Tente novamente.'
-          )
+          createCameraStateFromError(createUnexpectedAudioTrackError())
         );
         return;
       }
@@ -283,12 +321,7 @@ export function CameraPreview() {
 
       if (!videoElement) {
         stopMediaStream(stream);
-        setCameraState(
-          createCameraState(
-            'error',
-            'Não foi possível exibir a prévia da câmera. Tente novamente.'
-          )
-        );
+        setCameraState(createCameraStateFromError(createPlaybackFailedError()));
         return;
       }
 
@@ -296,12 +329,7 @@ export function CameraPreview() {
         await attachStreamToVideo(videoElement, stream);
       } catch {
         stopMediaStream(stream, videoElement);
-        setCameraState(
-          createCameraState(
-            'error',
-            'Não foi possível reproduzir a prévia da câmera. Tente novamente.'
-          )
-        );
+        setCameraState(createCameraStateFromError(createPlaybackFailedError()));
         return;
       }
 
@@ -314,6 +342,7 @@ export function CameraPreview() {
       }
 
       streamRef.current = stream;
+      attachTrackEndedListener(stream);
       setCameraState(createCameraState('active'));
       setActiveDeviceId(getActiveDeviceIdFromStream(stream));
       await loadDeviceList();
@@ -325,7 +354,8 @@ export function CameraPreview() {
         return;
       }
 
-      setCameraState(classifyGetUserMediaError(error));
+      const presentationError = await classifyGetUserMediaError(error);
+      setCameraState(createCameraStateFromError(presentationError));
     } finally {
       if (generation === operationGenerationRef.current) {
         isRequestingRef.current = false;
@@ -344,16 +374,17 @@ export function CameraPreview() {
       return;
     }
 
-    if (!isMediaDevicesSupported()) {
+    if (!isMediaDevicesApiAvailable()) {
       return;
     }
 
     const generation = ++operationGenerationRef.current;
     isSwitchingRef.current = true;
-    setSwitchMessage(null);
+    setSwitchError(null);
     setCameraState(createCameraState('switching'));
 
     const previousStream = streamRef.current;
+    const previousDeviceId = activeDeviceId;
     const videoElement = videoRef.current;
 
     try {
@@ -369,8 +400,8 @@ export function CameraPreview() {
 
       if (nextStream.getAudioTracks().length > 0) {
         stopMediaStream(nextStream);
-        setSwitchMessage(
-          'Não foi possível trocar de câmera. A câmera anterior continuará ativa.'
+        setSwitchError(
+          classifySwitchDeviceError(new Error('unexpected-audio'), true)
         );
         setCameraState(createCameraState('active'));
         return;
@@ -378,9 +409,7 @@ export function CameraPreview() {
 
       if (!videoElement) {
         stopMediaStream(nextStream);
-        setSwitchMessage(
-          'Não foi possível trocar de câmera. A câmera anterior continuará ativa.'
-        );
+        setSwitchError(classifySwitchDeviceError(new Error('no-video'), true));
         setCameraState(createCameraState('active'));
         return;
       }
@@ -389,8 +418,8 @@ export function CameraPreview() {
         await attachStreamToVideo(videoElement, nextStream);
       } catch {
         stopMediaStream(nextStream, videoElement);
-        setSwitchMessage(
-          'Não foi possível trocar de câmera. A câmera anterior continuará ativa.'
+        setSwitchError(
+          classifySwitchDeviceError(new Error('playback-failed'), true)
         );
         setCameraState(createCameraState('active'));
         return;
@@ -404,14 +433,17 @@ export function CameraPreview() {
         return;
       }
 
+      detachTrackEndedListener();
+      isManualStopRef.current = false;
       stopMediaStream(previousStream);
       streamRef.current = nextStream;
+      attachTrackEndedListener(nextStream);
 
       const confirmedDeviceId =
         getActiveDeviceIdFromStream(nextStream) ?? selectedDeviceId;
 
       setActiveDeviceId(confirmedDeviceId);
-      setSwitchMessage(null);
+      setSwitchError(null);
       setCameraState(createCameraState('active'));
       await loadDeviceList();
     } catch (error) {
@@ -422,8 +454,26 @@ export function CameraPreview() {
         return;
       }
 
-      setSwitchMessage(classifySwitchDeviceError(error));
-      setCameraState(createCameraState('active'));
+      const streamStillValid =
+        previousStream !== null &&
+        getPrimaryVideoTrack(previousStream)?.readyState === 'live';
+
+      if (streamStillValid && videoElement && previousStream) {
+        videoElement.srcObject = previousStream;
+        streamRef.current = previousStream;
+        attachTrackEndedListener(previousStream);
+        setActiveDeviceId(previousDeviceId);
+        setSwitchError(classifySwitchDeviceError(error, true));
+        setCameraState(createCameraState('active'));
+        return;
+      }
+
+      stopActiveStream();
+      resetDeviceState();
+      setSwitchError(null);
+      setCameraState(
+        createCameraStateFromError(classifySwitchDeviceError(error, false))
+      );
     } finally {
       if (generation === operationGenerationRef.current) {
         isSwitchingRef.current = false;
@@ -433,6 +483,7 @@ export function CameraPreview() {
 
   function handleDeactivateCamera() {
     invalidateOperations();
+    isManualStopRef.current = true;
     isRequestingRef.current = false;
     isSwitchingRef.current = false;
     stopActiveStream();
@@ -441,6 +492,7 @@ export function CameraPreview() {
   }
 
   function handleRetry() {
+    setCameraState(createCameraState('idle'));
     void handleActivateCamera();
   }
 
@@ -452,13 +504,17 @@ export function CameraPreview() {
     displayState.status === 'active' || displayState.status === 'switching';
   const isRequesting = displayState.status === 'requesting';
   const isSwitching = displayState.status === 'switching';
-  const showRetry =
-    displayState.status === 'denied' ||
-    displayState.status === 'error' ||
-    (displayState.status === 'unavailable' && mediaDevicesSupported);
+  const primaryError = displayState.error;
   const showActivate = displayState.status === 'idle';
+  const showPrimaryRetry =
+    primaryError !== null &&
+    primaryError.canRetry &&
+    (displayState.status === 'denied' ||
+      displayState.status === 'error' ||
+      displayState.status === 'unavailable' ||
+      displayState.status === 'idle');
   const showDeviceSelector =
-    mediaDevicesSupported &&
+    isMediaDevicesApiAvailable() &&
     (displayState.status === 'active' || displayState.status === 'switching');
   const showRefreshButton =
     showDeviceSelector &&
@@ -473,7 +529,7 @@ export function CameraPreview() {
 
       {displayState.status === 'requesting' ? (
         <p className="text-sm leading-relaxed text-zinc-400">
-          O navegador aguarda sua decisão sobre a permissão de câmera.
+          Aguardando sua decisão no navegador.
         </p>
       ) : null}
 
@@ -488,8 +544,8 @@ export function CameraPreview() {
               <VideoOff aria-hidden="true" className="size-8 text-zinc-500" />
               <p className="text-sm text-zinc-400">A câmera está desligada</p>
               <p className="text-sm text-zinc-500">
-                {displayState.status === 'unavailable' && !mediaDevicesSupported
-                  ? 'Utilize um navegador compatível em contexto seguro para ativar a câmera.'
+                {displayState.status === 'unavailable'
+                  ? 'Verifique o navegador, a permissão e a conexão segura antes de tentar novamente.'
                   : 'Selecione "Ativar câmera" para solicitar permissão.'}
               </p>
             </div>
@@ -508,27 +564,17 @@ export function CameraPreview() {
           ) : null}
         </div>
 
-        {displayState.message ? (
-          <p
-            className="text-sm leading-relaxed text-zinc-300"
-            role={displayState.status === 'active' ? undefined : 'alert'}
-          >
-            {displayState.message}
-          </p>
+        {primaryError ? (
+          <CameraErrorMessage
+            error={primaryError}
+            isRetryDisabled={isRequesting || isSwitching}
+            streamActive={isPreviewVisible}
+            onRetry={showPrimaryRetry ? handleRetry : undefined}
+          />
         ) : null}
 
-        {switchMessage ? (
-          <p className="text-sm leading-relaxed text-zinc-300" role="alert">
-            {switchMessage}
-          </p>
-        ) : null}
-
-        {displayState.status === 'unavailable' && !mediaDevicesSupported ? (
-          <p className="text-sm leading-relaxed text-zinc-400">
-            O acesso à câmera depende de um navegador compatível, da sua
-            permissão e de um contexto seguro (HTTPS ou localhost durante o
-            desenvolvimento).
-          </p>
+        {switchError ? (
+          <CameraErrorMessage error={switchError} streamActive />
         ) : null}
       </section>
 
@@ -545,6 +591,15 @@ export function CameraPreview() {
             void handleSwitchDevice(deviceId);
           }}
           onRefreshList={handleRefreshDeviceList}
+        />
+      ) : null}
+
+      {deviceListError ? (
+        <CameraErrorMessage
+          error={deviceListError}
+          isRefreshDisabled={isRefreshingList || isSwitching}
+          streamActive={isPreviewVisible}
+          onRefreshDevices={handleRefreshDeviceList}
         />
       ) : null}
 
@@ -572,19 +627,6 @@ export function CameraPreview() {
             onClick={handleDeactivateCamera}
           >
             Desligar câmera
-          </Button>
-        ) : null}
-
-        {showRetry ? (
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            className="min-h-11 w-full sm:w-auto"
-            disabled={isRequesting || isSwitching}
-            onClick={handleRetry}
-          >
-            Tentar novamente
           </Button>
         ) : null}
 
