@@ -41,6 +41,7 @@ Introduzir a experiência pública do jogador e preparar o caminho para configur
 | Indicador de estado da câmera    | Implementado | `src/features/camera/components/CameraStatus.tsx`             |
 | Espelhamento visual da prévia    | Implementado | `src/features/camera/components/CameraMirrorControl.tsx`      |
 | Encerramento seguro de recursos  | Implementado | `src/features/camera/services/camera-stream.ts`               |
+| Testes determinísticos da câmera | Implementado | `src/features/camera/**/*.test.ts(x)`, `tests/mocks/`         |
 | Componente Button (shadcn/ui)    | Implementado | `src/shared/components/ui/button.tsx`                         |
 | Componentes Checkbox e Label     | Implementado | `src/shared/components/ui/checkbox.tsx`, `label.tsx`          |
 
@@ -60,6 +61,8 @@ O **espelhamento visual da prévia** inverte horizontalmente somente a apresenta
 
 MediaPipe ainda não foi integrado; nenhuma detecção visual foi implementada.
 
+Os **testes automatizados** do módulo de câmera usam Vitest e React Testing Library com mocks tipados de `getUserMedia`, tracks e dispositivos. Nenhum teste depende de câmera física. Ver [`tests/README.md`](../tests/README.md).
+
 ### Ainda não implementado na Milestone 2
 
 - Integração com MediaPipe
@@ -75,7 +78,7 @@ Os itens abaixo fazem parte da visão do produto, mas **não existem no código*
 - Rotas `master`, `room` e `api` (além de `play/setup` e `play/camera`)
 - Persistência em banco de dados
 - Autenticação
-- Framework de testes (Vitest, Testing Library, Playwright ou equivalentes)
+- Playwright ou outros runners E2E
 - Servidores MCP configurados no repositório
 - Identidade visual final de horror
 - Motor configurável de criaturas
@@ -103,6 +106,7 @@ Antes de considerar alterações prontas para revisão, execute:
 npm run format:check
 npm run lint
 npm run typecheck
+npm test
 npm run build
 ```
 

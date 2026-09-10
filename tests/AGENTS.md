@@ -2,7 +2,7 @@
 
 These rules apply to files under `tests/`. Read the root [`AGENTS.md`](../AGENTS.md) and [`tests/README.md`](README.md) first. Local rules here add test-placement constraints; they do not replace global privacy, quality, or scope rules.
 
-No test framework is installed yet. These rules prepare future test work.
+Unit and component tests run with Vitest and React Testing Library (`npm test`). Do not add Playwright, Cypress, Jest, or coverage tools unless an issue explicitly authorizes them.
 
 ## Purpose
 

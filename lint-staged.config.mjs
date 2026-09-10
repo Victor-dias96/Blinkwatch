@@ -8,7 +8,7 @@ function excludeLockFiles(files) {
 
 /** @type {import('lint-staged').Configuration} */
 const config = {
-  '**/*.{js,jsx,mjs,cjs,ts,tsx}': ['eslint --fix', 'prettier --write'],
+  '**/*.{js,jsx,mjs,cjs,mts,ts,tsx}': ['eslint --fix', 'prettier --write'],
   '**/*.{css,scss,json,jsonc,md,mdx,yaml,yml}': (files) => {
     const filtered = excludeLockFiles(files);
 

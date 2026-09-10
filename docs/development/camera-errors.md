@@ -149,15 +149,9 @@ Quando a track principal emite `ended` sem stop manual:
 | Lista de câmeras vazia com prévia ativa   | Falha de enumeração — usar “Atualizar câmeras”                                                 |
 | Interface presa em “Aguardando permissão” | Responder ao prompt do navegador ou sair da rota                                               |
 
-## Future testing requirements
+## Automated tests
 
-Quando um runner de testes for instalado:
-
-- testes unitários para `classifyUnknownError`, `classifyDomExceptionName` e `createCameraPresentationError`;
-- mocks de `DOMException` com diferentes `name`;
-- mocks de Permissions API (`granted`, `denied`, rejeição);
-- verificação de `canRetry` por código;
-- testes de integração para preservação de stream em falha de troca (sem câmera real).
+Testes unitários e de componente existem em `src/features/camera/` e usam mocks em `tests/mocks/`. Cobrem classificação de `DOMException`, Permissions API, `canRetry` e preservação de stream na falha de troca. Ver [`tests/README.md`](../../tests/README.md).
 
 ## Fontes consultadas
 

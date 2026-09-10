@@ -208,9 +208,14 @@ export async function queryCameraPermissionState(): Promise<CameraPermissionStat
 }
 
 function isDomException(value: unknown): value is DOMException {
+  if (typeof DOMException !== 'undefined' && value instanceof DOMException) {
+    return true;
+  }
+
   return (
     typeof value === 'object' &&
     value !== null &&
+    !(value instanceof Error) &&
     'name' in value &&
     typeof (value as { name: unknown }).name === 'string'
   );

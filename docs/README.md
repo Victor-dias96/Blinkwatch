@@ -16,7 +16,7 @@ Documentação técnica do Blinkwatch. Use este índice para localizar o materia
 | Documento                                                                | Idioma | Descrição                                                                 |
 | ------------------------------------------------------------------------ | ------ | ------------------------------------------------------------------------- |
 | [`architecture/project-structure.md`](architecture/project-structure.md) | PT     | Estrutura física atual, árvore planejada, camadas e regras de dependência |
-| [`tests/README.md`](../tests/README.md)                                  | PT     | Organização planejada de testes (framework ainda não instalado)           |
+| [`tests/README.md`](../tests/README.md)                                  | PT     | Organização dos testes, Vitest e mocks de mídia                           |
 
 ## Desenvolvimento
 

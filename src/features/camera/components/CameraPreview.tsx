@@ -347,7 +347,7 @@ export function CameraPreview() {
     navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
 
     return () => {
-      navigator.mediaDevices.removeEventListener(
+      navigator.mediaDevices?.removeEventListener(
         'devicechange',
         handleDeviceChange
       );

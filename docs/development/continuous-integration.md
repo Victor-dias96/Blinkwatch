@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Blinkwatch repository uses GitHub Actions to validate changes before they are merged. The CI workflow runs the same quality checks that contributors should run locally: formatting verification, lint, TypeScript typecheck, and a production build.
+The Blinkwatch repository uses GitHub Actions to validate changes before they are merged. The CI workflow runs the same quality checks that contributors should run locally: formatting verification, lint, TypeScript typecheck, unit/component tests, and a production build.
 
 CI **does not** modify source files, deploy the application, require application secrets, use MCP, access a camera, or persist application data. It complements local Git hooks; passing hooks alone does not replace the full CI validation.
 
@@ -78,6 +78,7 @@ After installation, the workflow runs these steps in order:
 | Check formatting  | `npm run format:check` | Verifies Prettier; does not write |
 | Run lint          | `npm run lint`         | Runs ESLint; does not auto-fix    |
 | Run typecheck     | `npm run typecheck`    | Runs `tsc --noEmit`               |
+| Run tests         | `npm test`             | Runs Vitest (`vitest run`)        |
 | Build application | `npm run build`        | Production Next.js build          |
 
 The workflow does **not** run `npm run format` or `npm run lint:fix`. If any step fails, the job fails.
@@ -97,6 +98,7 @@ npm ci
 npm run format:check
 npm run lint
 npm run typecheck
+npm test
 npm run build
 ```
 
@@ -125,6 +127,7 @@ Passing pre-commit hooks does not guarantee CI will pass. Always run the full CI
 | Format check fails                | Unformatted files                    | Run `npm run format`, then `format:check` |
 | Lint fails                        | ESLint errors or import order        | Run `npm run lint:fix`, then `lint`       |
 | Typecheck fails                   | TypeScript errors                    | Fix types; run `npm run typecheck`        |
+| Tests fail                        | Failing Vitest assertions or setup   | Run `npm test` locally                    |
 | Build fails                       | Compilation or Next.js config issue  | Run `npm run build` locally               |
 | CI passes locally but fails in CI | Different Node version or stale deps | Use Node 20; run `npm ci` before checks   |
 
@@ -144,7 +147,7 @@ The CI workflow:
 The following are **not** part of the current CI pipeline and may be added in future issues:
 
 - Deploy to staging or production
-- Unit, integration, or E2E tests
+- E2E tests (Playwright or equivalents)
 - Dependabot or CodeQL
 - Browser or OS matrix builds
 - Manual `.next` cache optimization

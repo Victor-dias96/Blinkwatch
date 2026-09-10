@@ -146,14 +146,9 @@ Nenhum estado é persistido ou enviado ao servidor.
 
 O indicador utiliza layout flexível (`flex`, `min-w-0`, ícone `shrink-0`) para telas de 320 px até 1440 px e zoom de 200%. Coexiste com prévia, seletor e controles na coluna principal de `/play/camera`.
 
-## Future test requirements
+## Automated tests
 
-Quando um runner existir:
-
-- testes unitários para `resolveCameraStatusPresentation` cobrindo cada combinação status/erro/track;
-- verificação de que `active` nunca é retornado sem track válida;
-- verificação de que avisos com stream ativo não alteram o título principal;
-- testes de componente para `aria-live` e ausência de anúncios duplicados.
+`resolveCameraStatusPresentation` é coberto por testes unitários. `CameraStatus` verifica `aria-live` e a ausência de anúncio no estado inicial desligado. Avisos com stream ativo não alteram o título **Câmera ativa**. Ver [`tests/README.md`](../../tests/README.md).
 
 ## Future integration with vision processing
 

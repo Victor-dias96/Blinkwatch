@@ -141,7 +141,7 @@ Subdiretórios existentes e planejados:
 
 Automações do repositório no GitHub. O diretório `workflows/` contém definições de GitHub Actions.
 
-- `workflows/ci.yml` — workflow **CI** que valida formatação, lint, typecheck e build em pull requests e pushes para `main`.
+- `workflows/ci.yml` — workflow **CI** que valida formatação, lint, typecheck, testes e build em pull requests e pushes para `main`.
 - Deploy, publicação de artifacts e integrações de produção **não** fazem parte do workflow atual.
 - GitHub Actions **não** faz parte do runtime entregue aos jogadores; é infraestrutura de desenvolvimento do repositório.
 - `decisions/` — ADRs (Architecture Decision Records);
@@ -339,10 +339,9 @@ Nome do arquivo associado com sufixo adequado:
 - Subdiretórios de `shared` além de `lib/` (components, hooks, schemas, types, utils);
 - Subdiretórios de `public/` (audio, icons, models);
 - Subdiretórios de `docs/` além de `architecture/` e `development/` (decisions, privacy, protocols, testing); arquivos de entrada `docs/README.md` e `docs/project-status.md` **existem** nesta fase;
-- Subdiretórios de `tests/` além do README;
-- Câmera, MediaPipe, detecção de piscadas, multiplayer, persistência;
-- Componentes shadcn/ui;
-- Framework de testes (Vitest, Testing Library, Playwright);
+- Subdiretórios de `tests/` além de `mocks/` e do README;
+- MediaPipe, detecção de piscadas, multiplayer, persistência;
+- Playwright ou outros runners E2E;
 - Regras ESLint de fronteiras arquiteturais.
 
 ## 12. Agent Skills

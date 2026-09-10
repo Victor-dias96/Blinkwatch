@@ -63,8 +63,10 @@ Tecnologias **presentes** no repositório (versões em [`package.json`](package.
 - lint-staged
 - Commitlint
 - GitHub Actions
+- Vitest
+- React Testing Library
 
-**Não instalados** nesta fase (mencionados apenas como possibilidades futuras): MediaPipe, Socket.IO, Prisma, PostgreSQL, frameworks de teste (Vitest, Testing Library, Playwright), servidores MCP.
+**Não instalados** nesta fase (mencionados apenas como possibilidades futuras): MediaPipe, Socket.IO, Prisma, PostgreSQL, Playwright, servidores MCP.
 
 ## Requisitos
 
@@ -100,6 +102,7 @@ Execute antes de abrir um pull request ou reportar uma tarefa como concluída:
 npm run format:check
 npm run lint
 npm run typecheck
+npm test
 npm run build
 ```
 
@@ -153,7 +156,7 @@ Programação assistida por agentes deve seguir [`AGENTS.md`](AGENTS.md) na raiz
 2. Implemente **somente** o solicitado — não antecipe funcionalidades futuras (câmera, MediaPipe, salas, banco de dados, etc.).
 3. Leia [`AGENTS.md`](AGENTS.md) e o `AGENTS.md` contextual da área afetada.
 4. Ative a Skill correspondente em [`.agents/skills/`](.agents/skills/) quando aplicável.
-5. Execute a validação local (`format:check`, `lint`, `typecheck`, `build`).
+5. Execute a validação local (`format:check`, `lint`, `typecheck`, `test`, `build`).
 6. Abra um pull request; o workflow CI validará automaticamente.
 
 Diretrizes de arquitetura incremental: [`docs/architecture/project-structure.md`](docs/architecture/project-structure.md).
@@ -170,4 +173,6 @@ Diretrizes de arquitetura incremental: [`docs/architecture/project-structure.md`
 | `npm run lint`         | Executa ESLint                  |
 | `npm run lint:fix`     | Correções seguras do ESLint     |
 | `npm run typecheck`    | Verificação de tipos TypeScript |
+| `npm test`             | Testes Vitest (jsdom)           |
+| `npm run test:watch`   | Testes Vitest em modo watch     |
 | `npm run commitlint`   | Valida mensagem de commit       |

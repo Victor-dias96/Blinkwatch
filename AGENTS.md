@@ -35,11 +35,12 @@ Most product functionality is **planned and not yet implemented**. Work incremen
 - Root layout with metadata at `src/app/layout.tsx`
 - Shared utility re-export at `src/shared/lib/utils.ts` (`cn` from the `cn` package)
 - Typed environment modules at `src/shared/config/env/` (`clientEnv`, `serverEnv`) with Zod validation
-- Test directory placeholder documented in [`tests/README.md`](tests/README.md)
+- Camera consent, local preview, device selection, lifecycle controls, and error handling
+- Vitest and React Testing Library for deterministic camera-module tests
+- Test directory with shared media mocks at [`tests/README.md`](tests/README.md)
 
 ### Not implemented yet
 
-- Camera access and permissions flow
 - MediaPipe integration
 - Face tracking
 - Eye tracking
@@ -48,12 +49,10 @@ Most product functionality is **planned and not yet implemented**. Work incremen
 - Realtime rooms and event sync
 - Master dashboard
 - Database persistence
-- Routes: `play`, `master`, `room`, `api`
-- Feature modules under `src/features/`
-- Layers: `src/domain/`, `src/infrastructure/`, `src/server/`
-- shadcn/ui components under `src/shared/components/ui/`
-- Test frameworks (Vitest, Testing Library, Playwright, or equivalents)
+- Routes: `master`, `room`, `api`
+- Layers: `src/domain/`, `src/infrastructure/`, `src/server/` (partially planned)
 - ESLint architectural boundary enforcement
+- Playwright or other E2E runners
 
 ## 3. Technology Stack
 
@@ -88,7 +87,7 @@ Do not add or assume these unless the current issue explicitly requires them:
 - Socket.IO
 - Prisma
 - PostgreSQL
-- Vitest / Testing Library / Playwright
+- Playwright
 - MCP servers
 
 ## 4. Repository Structure
@@ -119,13 +118,13 @@ blinkwatch/
 
 ### Directory roles
 
-| Path          | Purpose                                                              |
-| ------------- | -------------------------------------------------------------------- |
-| `src/app/`    | Routing, layouts, page composition, route handlers (when added)      |
-| `src/shared/` | Cross-feature reusable code (currently only `lib/utils.ts`)          |
-| `docs/`       | Technical documentation                                              |
-| `tests/`      | Global tests and shared test resources (framework not installed yet) |
-| `public/`     | Static files served by Next.js                                       |
+| Path          | Purpose                                                         |
+| ------------- | --------------------------------------------------------------- |
+| `src/app/`    | Routing, layouts, page composition, route handlers (when added) |
+| `src/shared/` | Cross-feature reusable code (currently only `lib/utils.ts`)     |
+| `docs/`       | Technical documentation                                         |
+| `tests/`      | Shared test mocks/docs; feature tests are colocated             |
+| `public/`     | Static files served by Next.js                                  |
 
 The planned structure—including `features`, `domain`, `infrastructure`, and `server`—is described in [`docs/architecture/project-structure.md`](docs/architecture/project-structure.md). Directories are created only when real files are added.
 
@@ -341,6 +340,7 @@ Run these before concluding a task that touches code or configuration:
 npm run format:check
 npm run lint
 npm run typecheck
+npm test
 npm run build
 ```
 
@@ -364,6 +364,10 @@ npm run format:check # verify Prettier formatting
 npm run lint         # run ESLint
 npm run lint:fix     # run ESLint with safe fixes (includes import sort)
 npm run typecheck    # TypeScript check (tsc --noEmit)
+
+# Tests
+npm test             # Vitest once (jsdom, no camera hardware)
+npm run test:watch   # Vitest in watch mode
 
 # Git hooks (manual)
 npm run commitlint   # validate a commit message (see README for examples)
@@ -403,7 +407,7 @@ MCP servers remain listed under **Planned but not installed** in section 3 until
 
 Pull requests and pushes to the `main` branch are validated by the GitHub Actions workflow at [`.github/workflows/ci.yml`](.github/workflows/ci.yml). See [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md) for details.
 
-- Agents must run the local equivalents (`format:check`, `lint`, `typecheck`, `build`) before reporting a task as complete.
+- Agents must run the local equivalents (`format:check`, `lint`, `typecheck`, `test`, `build`) before reporting a task as complete.
 - CI does **not** replace local validation; passing Git hooks alone is insufficient.
 - Do **not** weaken CI checks, skip validations, or disable workflow steps to make a change pass.
 - CI workflows must use minimum permissions (`contents: read` only unless a documented exception exists).
