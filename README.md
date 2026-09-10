@@ -12,7 +12,7 @@ O Blinkwatch **complementa** a sessão de RPG; **não substitui** o sistema de j
 
 > **Aviso:** a Milestone 1 (fundação) foi concluída; a **Milestone 2** (câmera e prova de conceito visual) está em andamento. A tela inicial pública e a rota de preparação `/play/setup` já existem.
 >
-> - Acesso à câmera: **não implementado**
+> - Acesso à câmera (prévia local): **implementado**
 > - Detecção de piscadas: **não implementado**
 > - Multiplayer / salas em tempo real: **não implementado**
 > - Painel do mestre: **não implementado**

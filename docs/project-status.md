@@ -29,24 +29,24 @@ Introduzir a experiência pública do jogador e preparar o caminho para configur
 
 ### Entregue nesta fase
 
-| Item                          | Estado       | Referência                                                    |
-| ----------------------------- | ------------ | ------------------------------------------------------------- |
-| Tela inicial pública          | Implementado | `src/app/page.tsx`, `src/features/landing/`                   |
-| Navegação para preparação     | Implementado | Ação principal em `/` → `/play/setup`                         |
-| Fluxo de consentimento        | Implementado | `src/app/play/setup/page.tsx`, `src/features/camera-consent/` |
-| Rota de transição da câmera   | Implementado | `src/app/play/camera/page.tsx`                                |
-| Componente Button (shadcn/ui) | Implementado | `src/shared/components/ui/button.tsx`                         |
-| Componentes Checkbox e Label  | Implementado | `src/shared/components/ui/checkbox.tsx`, `label.tsx`          |
+| Item                            | Estado       | Referência                                                    |
+| ------------------------------- | ------------ | ------------------------------------------------------------- |
+| Tela inicial pública            | Implementado | `src/app/page.tsx`, `src/features/landing/`                   |
+| Navegação para preparação       | Implementado | Ação principal em `/` → `/play/setup`                         |
+| Fluxo de consentimento          | Implementado | `src/app/play/setup/page.tsx`, `src/features/camera-consent/` |
+| Rota de câmera com prévia local | Implementado | `src/app/play/camera/page.tsx`, `src/features/camera/`        |
+| Componente Button (shadcn/ui)   | Implementado | `src/shared/components/ui/button.tsx`                         |
+| Componentes Checkbox e Label    | Implementado | `src/shared/components/ui/checkbox.tsx`, `label.tsx`          |
 
-O consentimento exige uma ação explícita (checkbox) antes de avançar para `/play/camera`. **Não é persistido** — recarregar `/play/setup` reinicia o estado. Nenhuma permissão nativa de câmera é solicitada nesta fase.
+O consentimento exige uma ação explícita (checkbox) antes de avançar para `/play/camera`. **Não é persistido** — recarregar `/play/setup` reinicia o estado.
+
+O acesso inicial à câmera em `/play/camera` utiliza `getUserMedia` **somente após** o participante selecionar **Ativar câmera**. A solicitação pede **apenas vídeo** (`audio: false`); a prévia é exibida localmente via `HTMLVideoElement` e pode ser encerrada com **Desligar câmera**. Todas as tracks recebem `stop()` no desligamento manual e no cleanup ao sair da rota. A câmera **não** é ativada automaticamente ao carregar a página.
 
 ### Ainda não implementado na Milestone 2
 
-- Acesso à câmera (`getUserMedia`) — previsto na Issue 15
 - Integração com MediaPipe
 - Rastreamento facial ou ocular
 - Detecção de piscadas e calibração do jogador
-- Prévia real de vídeo
 - Seleção de dispositivo de câmera
 
 ## Fora de escopo (visão de produto)
@@ -69,8 +69,8 @@ Ao executar `npm run dev` e acessar [http://localhost:3000](http://localhost:300
 
 1. A **página inicial** apresenta a proposta do Blinkwatch, um resumo de privacidade e a ação **Iniciar experiência**.
 2. A ação leva para **`/play/setup`**, uma etapa de consentimento com explicações sobre uso futuro da câmera, checkbox explícito e botão **Continuar** (desabilitado até o aceite).
-3. Após marcar o consentimento e continuar, o participante chega a **`/play/camera`**, tela de transição que informa que a câmera ainda não foi ativada.
-4. **Não há** solicitação de permissão nativa, processamento de vídeo, detecção visual ou multiplayer.
+3. Após marcar o consentimento e continuar, o participante chega a **`/play/camera`**, onde pode ativar a câmera explicitamente, visualizar a prévia local e desligá-la.
+4. **Não há** processamento de visão computacional, detecção visual, transmissão de vídeo ou multiplayer.
 
 ## Próximas fases (planejamento)
 

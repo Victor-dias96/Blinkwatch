@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+
+import { CameraPreview } from '@/features/camera/components/CameraPreview';
 
 export const metadata: Metadata = {
   title: 'Câmera | Blinkwatch',
-  description: 'Prepare-se para ativar a câmera na experiência do Blinkwatch.',
+  description:
+    'Ative a câmera localmente para a prévia do Blinkwatch. Nenhum vídeo é transmitido ou gravado.',
 };
 
 export default function PlayCameraPage() {
@@ -19,23 +21,17 @@ export default function PlayCameraPage() {
         </h1>
 
         <p className="mt-6 leading-relaxed text-zinc-300">
-          A etapa de consentimento foi concluída. A câmera ainda não foi
-          ativada.
+          A câmera será solicitada somente quando você selecionar a ação abaixo.
+          A prévia permanece no seu dispositivo — nenhum vídeo é enviado ou
+          gravado nesta etapa.
         </p>
 
         <p className="mt-4 leading-relaxed text-zinc-400">
-          Nenhuma permissão do navegador foi solicitada nesta tela. A ativação
-          da câmera será implementada na próxima etapa.
+          Visão computacional e detecção de eventos ainda não estão ativas.
+          Apenas a prévia local será exibida após a permissão do navegador.
         </p>
 
-        <p className="mt-8">
-          <Link
-            href="/play/setup"
-            className="text-sm text-zinc-300 underline-offset-4 hover:text-zinc-50 hover:underline focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 focus-visible:outline-none"
-          >
-            Voltar para a preparação
-          </Link>
-        </p>
+        <CameraPreview />
       </div>
     </main>
   );
