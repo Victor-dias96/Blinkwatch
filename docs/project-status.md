@@ -1,85 +1,57 @@
-# Estado do projeto — Milestone 1
+# Estado do projeto
 
-Este documento registra o que a **Milestone 1 (Fundação)** entregou até o momento e o que permanece fora de escopo nesta fase. Ele complementa o [`README.md`](../README.md) com detalhes verificáveis contra o repositório.
+Este documento registra o que foi entregue em cada milestone e o que permanece fora de escopo. Ele complementa o [`README.md`](../README.md) com detalhes verificáveis contra o repositório.
 
-**Última revisão:** 2026-09-09
+**Última revisão:** 2026-09-10
 
-## Objetivo da Milestone 1
+## Milestone 1 — Fundação (concluída)
+
+### Objetivo
 
 Estabelecer a base técnica, de qualidade, de agentes e de integração contínua para que funcionalidades de produto possam ser implementadas de forma incremental, sem abstrações prematuras e com regras claras de privacidade.
 
-## Entregue nesta fase
+### Entregue
 
-### Aplicação
+| Área                  | Itens principais                                                                                                                  |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Aplicação             | Next.js (App Router), layout raiz, metadados, estilos globais (Tailwind CSS), utilitário `cn`, validação tipada de ambiente (Zod) |
+| Qualidade e Git       | TypeScript (strict), ESLint, Prettier, Husky, lint-staged, Commitlint                                                             |
+| UI                    | Tailwind CSS, shadcn/ui inicializado, Lucide React                                                                                |
+| Arquitetura e agentes | Documentação modular, `AGENTS.md` (raiz e contextuais), Agent Skills, estratégia MCP                                              |
+| CI                    | Workflow GitHub Actions, documentação de CI                                                                                       |
+| Documentação          | README, índice de docs, variáveis de ambiente, placeholder de testes                                                              |
 
-| Item                               | Estado       | Referência                |
-| ---------------------------------- | ------------ | ------------------------- |
-| Next.js (App Router)               | Implementado | `src/app/`                |
-| Página inicial mínima              | Implementado | `src/app/page.tsx`        |
-| Layout raiz e metadados            | Implementado | `src/app/layout.tsx`      |
-| Estilos globais (Tailwind CSS)     | Implementado | `src/app/globals.css`     |
-| Utilitário `cn` compartilhado      | Implementado | `src/shared/lib/utils.ts` |
-| Validação tipada de ambiente (Zod) | Implementado | `src/shared/config/env/`  |
-| Exemplo de variáveis de ambiente   | Implementado | `.env.example`            |
+## Milestone 2 — Câmera e prova de conceito visual (em andamento)
 
-### Qualidade e Git
+### Objetivo
 
-| Item                              | Estado       | Referência              |
-| --------------------------------- | ------------ | ----------------------- |
-| TypeScript (strict mode)          | Implementado | `tsconfig.json`         |
-| ESLint                            | Implementado | `eslint.config.mjs`     |
-| Prettier (+ ordenação Tailwind)   | Implementado | `.prettierrc`           |
-| Husky                             | Implementado | `.husky/`               |
-| lint-staged                       | Implementado | `package.json`          |
-| Commitlint (Conventional Commits) | Implementado | `commitlint.config.mjs` |
+Introduzir a experiência pública do jogador e preparar o caminho para configuração da câmera, mantendo processamento visual local e sem transmitir dados faciais brutos.
 
-### UI e dependências de interface
+### Entregue nesta fase
 
-| Item                              | Estado               | Referência              |
-| --------------------------------- | -------------------- | ----------------------- |
-| Tailwind CSS                      | Implementado         | `package.json`, PostCSS |
-| shadcn/ui (inicializado)          | Implementado         | `components.json`       |
-| Lucide React                      | Instalado            | `package.json`          |
-| Componentes shadcn/ui adicionados | **Não implementado** | —                       |
+| Item                          | Estado       | Referência                                  |
+| ----------------------------- | ------------ | ------------------------------------------- |
+| Tela inicial pública          | Implementado | `src/app/page.tsx`, `src/features/landing/` |
+| Navegação para preparação     | Implementado | Ação principal em `/` → `/play/setup`       |
+| Rota de preparação da câmera  | Implementado | `src/app/play/setup/page.tsx`               |
+| Componente Button (shadcn/ui) | Implementado | `src/shared/components/ui/button.tsx`       |
 
-### Arquitetura e agentes
+### Ainda não implementado na Milestone 2
 
-| Item                                                                   | Estado               | Referência                                                                                 |
-| ---------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------ |
-| Documentação de estrutura modular                                      | Implementado         | [`architecture/project-structure.md`](architecture/project-structure.md)                   |
-| `AGENTS.md` principal                                                  | Implementado         | [`AGENTS.md`](../AGENTS.md)                                                                |
-| `AGENTS.md` contextuais                                                | Implementado         | `src/app/`, `src/features/`, `src/infrastructure/`, `src/server/`, `src/shared/`, `tests/` |
-| Agent Skills                                                           | Implementado         | [`.agents/skills/`](../.agents/skills/)                                                    |
-| Estratégia de MCP (documentada)                                        | Implementado         | [`development/mcp-strategy.md`](development/mcp-strategy.md)                               |
-| Diretórios `features`, `domain`, `infrastructure`, `server` com código | **Não implementado** | Apenas `AGENTS.md` contextuais em alguns caminhos                                          |
-
-### Integração contínua
-
-| Item                         | Estado       | Referência                                                                       |
-| ---------------------------- | ------------ | -------------------------------------------------------------------------------- |
-| Workflow GitHub Actions (CI) | Implementado | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)                        |
-| Documentação de CI           | Implementado | [`development/continuous-integration.md`](development/continuous-integration.md) |
-
-### Documentação
-
-| Item                     | Estado       | Referência                                                                     |
-| ------------------------ | ------------ | ------------------------------------------------------------------------------ |
-| README principal (PT-BR) | Implementado | [`README.md`](../README.md)                                                    |
-| Índice de documentação   | Implementado | [`docs/README.md`](README.md)                                                  |
-| Variáveis de ambiente    | Implementado | [`development/environment-variables.md`](development/environment-variables.md) |
-| Placeholder de testes    | Implementado | [`tests/README.md`](../tests/README.md)                                        |
-
-## Fora de escopo da Milestone 1
-
-Os itens abaixo fazem parte da visão do produto, mas **não existem no código** nesta fase:
-
-- Acesso à câmera e fluxo de consentimento
+- Acesso à câmera e fluxo de consentimento completo
 - Integração com MediaPipe
 - Rastreamento facial ou ocular
 - Detecção de piscadas e calibração do jogador
+- Prévia real de vídeo
+- Seleção de dispositivo de câmera
+
+## Fora de escopo (visão de produto)
+
+Os itens abaixo fazem parte da visão do produto, mas **não existem no código** nesta fase:
+
 - Salas e sincronização em tempo real
 - Painel do mestre
-- Rotas `play`, `master`, `room` e `api`
+- Rotas `master`, `room` e `api` (além de `play/setup`)
 - Persistência em banco de dados
 - Autenticação
 - Framework de testes (Vitest, Testing Library, Playwright ou equivalentes)
@@ -89,7 +61,11 @@ Os itens abaixo fazem parte da visão do produto, mas **não existem no código*
 
 ## O que a aplicação faz hoje
 
-Ao executar `npm run dev` e acessar [http://localhost:3000](http://localhost:3000), o usuário vê uma página inicial estática que informa que o projeto está em desenvolvimento. Não há interação com câmera, detecção visual ou multiplayer.
+Ao executar `npm run dev` e acessar [http://localhost:3000](http://localhost:3000):
+
+1. A **página inicial** apresenta a proposta do Blinkwatch, um resumo de privacidade e a ação **Iniciar experiência**.
+2. A ação leva para **`/play/setup`**, uma tela de preparação que informa que nenhuma permissão de câmera foi solicitada ainda.
+3. **Não há** interação com câmera, detecção visual ou multiplayer.
 
 ## Próximas fases (planejamento)
 

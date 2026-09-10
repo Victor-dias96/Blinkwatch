@@ -410,3 +410,13 @@ Pull requests and pushes to the `main` branch are validated by the GitHub Action
 - Dependency installation in CI must use the lockfile (`npm ci` with `package-lock.json`).
 - CI must not receive camera frames, video streams, or facial data.
 - Changes to CI workflows must be reported explicitly in the task final report.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -10,7 +10,7 @@ O Blinkwatch **complementa** a sessão de RPG; **não substitui** o sistema de j
 
 ## Estado atual
 
-> **Aviso:** o projeto está em fase de **fundação**. A Milestone 1 concentrou arquitetura, qualidade de código, instruções para agentes, Skills, ambiente tipado e integração contínua.
+> **Aviso:** a Milestone 1 (fundação) foi concluída; a **Milestone 2** (câmera e prova de conceito visual) está em andamento. A tela inicial pública e a rota de preparação `/play/setup` já existem.
 >
 > - Acesso à câmera: **não implementado**
 > - Detecção de piscadas: **não implementado**
