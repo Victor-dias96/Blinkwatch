@@ -139,13 +139,13 @@ Quando a track principal emite `ended` sem stop manual:
 
 ## Troubleshooting
 
-| Sintoma                                   | Verificação                                                           |
-| ----------------------------------------- | --------------------------------------------------------------------- |
-| Botão “Iniciar câmera” ausente            | Pode ser contexto inseguro ou API indisponível — ver mensagem exibida |
-| Permissão negada sem retry                | Pode ser `permission-blocked` — revisar configurações do site         |
-| Prévia some após desconectar USB          | Comportamento esperado (`device-disconnected`)                        |
-| Lista de câmeras vazia com prévia ativa   | Falha de enumeração — usar “Atualizar câmeras”                        |
-| Interface presa em “Aguardando permissão” | Responder ao prompt do navegador ou sair da rota                      |
+| Sintoma                                   | Verificação                                                                                    |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Botão “Iniciar câmera” ausente            | Estado não está em `idle` — após falha de ambiente o botão some e a mensagem de erro é exibida |
+| Permissão negada sem retry                | Pode ser `permission-blocked` — revisar configurações do site                                  |
+| Prévia some após desconectar USB          | Comportamento esperado (`device-disconnected`)                                                 |
+| Lista de câmeras vazia com prévia ativa   | Falha de enumeração — usar “Atualizar câmeras”                                                 |
+| Interface presa em “Aguardando permissão” | Responder ao prompt do navegador ou sair da rota                                               |
 
 ## Future testing requirements
 

@@ -39,6 +39,7 @@ Introduzir a experiência pública do jogador e preparar o caminho para configur
 | Controles de ciclo de vida       | Implementado | `src/features/camera/components/CameraControls.tsx`           |
 | Tratamento de erros da câmera    | Implementado | `src/features/camera/errors/camera-error.ts`                  |
 | Indicador de estado da câmera    | Implementado | `src/features/camera/components/CameraStatus.tsx`             |
+| Espelhamento visual da prévia    | Implementado | `src/features/camera/components/CameraMirrorControl.tsx`      |
 | Componente Button (shadcn/ui)    | Implementado | `src/shared/components/ui/button.tsx`                         |
 | Componentes Checkbox e Label     | Implementado | `src/shared/components/ui/checkbox.tsx`, `label.tsx`          |
 
@@ -53,6 +54,8 @@ O **tratamento de erros** consolida falhas em códigos internos estáveis com me
 Os **controles de ciclo de vida** estão documentados em [`development/camera-controls.md`](development/camera-controls.md).
 
 O **indicador de estado** separa o estado técnico da apresentação visual (`resolveCameraStatusPresentation`). Estados normais, transitórios, pausados e de falha exibem título, descrição, ícone e tom — sem depender somente de cor. Erros e avisos operacionais permanecem em `CameraErrorMessage`; o status principal mantém **Câmera ativa** quando o stream continua válido após falha de troca ou enumeração. Detalhes em [`development/camera-status.md`](development/camera-status.md).
+
+O **espelhamento visual da prévia** inverte horizontalmente somente a apresentação do `<video>` via CSS (`[transform:scaleX(-1)]`, equivalente a `scaleX(-1)`). Inicia **ativado por padrão** (`isMirrored = true`); o participante pode ativar ou desativar com **Espelhar prévia**. A preferência permanece somente na memória da rota — troca de dispositivo, reinício, pausa e retomada preservam o valor; encerrar e iniciar novamente na mesma rota também preserva; sair de `/play/camera` descarta o estado. Pausa não captura frame; o stream original não é alterado. Detalhes em [`development/camera-mirroring.md`](development/camera-mirroring.md).
 
 MediaPipe ainda não foi integrado; nenhuma detecção visual foi implementada.
 

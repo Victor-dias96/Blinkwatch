@@ -7,6 +7,7 @@ import { Pause, VideoOff } from 'lucide-react';
 import { CameraControls } from '@/features/camera/components/CameraControls';
 import { CameraDeviceSelect } from '@/features/camera/components/CameraDeviceSelect';
 import { CameraErrorMessage } from '@/features/camera/components/CameraErrorMessage';
+import { CameraMirrorControl } from '@/features/camera/components/CameraMirrorControl';
 import { CameraStatus } from '@/features/camera/components/CameraStatus';
 import {
   type CameraPresentationError,
@@ -43,8 +44,8 @@ import {
 import {
   type CameraState,
   createCameraState,
-  resolveDisplayCameraState,
 } from '@/features/camera/types/camera-state';
+import { cn } from '@/shared/lib/utils';
 
 export function CameraPreview() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -71,8 +72,7 @@ export function CameraPreview() {
   const [isRefreshingList, setIsRefreshingList] = useState(false);
   const [hasValidActiveTrack, setHasValidActiveTrack] = useState(false);
   const [hasValidPausedTrack, setHasValidPausedTrack] = useState(false);
-
-  const displayState = resolveDisplayCameraState(cameraState);
+  const [isMirrored, setIsMirrored] = useState(true);
 
   const invalidateOperations = useCallback(() => {
     operationGenerationRef.current += 1;
@@ -684,48 +684,47 @@ export function CameraPreview() {
   }
 
   const isPreviewVisible =
-    displayState.status === 'active' || displayState.status === 'switching';
-  const isPaused = displayState.status === 'paused';
-  const isRestarting = displayState.status === 'restarting';
-  const isRequesting = displayState.status === 'requesting';
-  const isSwitching = displayState.status === 'switching';
+    cameraState.status === 'active' || cameraState.status === 'switching';
+  const isPaused = cameraState.status === 'paused';
+  const isRestarting = cameraState.status === 'restarting';
+  const isRequesting = cameraState.status === 'requesting';
+  const isSwitching = cameraState.status === 'switching';
   const operationInProgress = isRequesting || isSwitching || isRestarting;
-  const primaryError = displayState.error;
-  const showActivate = displayState.status === 'idle';
+  const primaryError = cameraState.error;
+  const showActivate = cameraState.status === 'idle';
   const showPrimaryRetry =
     primaryError !== null &&
     primaryError.canRetry &&
-    (displayState.status === 'denied' ||
-      displayState.status === 'error' ||
-      displayState.status === 'unavailable' ||
-      displayState.status === 'idle');
+    (cameraState.status === 'denied' ||
+      cameraState.status === 'error' ||
+      cameraState.status === 'unavailable' ||
+      cameraState.status === 'idle');
   const hasActiveOrPausedStream =
-    displayState.status === 'active' ||
-    displayState.status === 'paused' ||
-    displayState.status === 'switching' ||
-    displayState.status === 'restarting';
+    cameraState.status === 'active' ||
+    cameraState.status === 'paused' ||
+    cameraState.status === 'switching' ||
+    cameraState.status === 'restarting';
   const showDeviceSelector =
-    isMediaDevicesApiAvailable() &&
-    (displayState.status === 'active' ||
-      displayState.status === 'switching' ||
-      displayState.status === 'paused');
+    cameraState.status === 'active' ||
+    cameraState.status === 'switching' ||
+    cameraState.status === 'paused';
   const showRefreshButton =
     showDeviceSelector &&
-    displayState.status !== 'paused' &&
+    cameraState.status !== 'paused' &&
     (deviceListError !== null || !supportsDeviceChangeEvent());
-  const canPause = displayState.status === 'active';
-  const canResume = displayState.status === 'paused';
+  const canPause = cameraState.status === 'active';
+  const canResume = cameraState.status === 'paused';
   const canRestart = hasActiveOrPausedStream;
   const canStop = hasActiveOrPausedStream;
 
   return (
     <div className="mt-8 space-y-6">
       <CameraStatus
-        error={displayState.error}
+        error={cameraState.error}
         hasValidActiveTrack={hasValidActiveTrack}
         hasValidPausedTrack={hasValidPausedTrack}
         isRefreshingDevices={isRefreshingList}
-        status={displayState.status}
+        status={cameraState.status}
       />
 
       <section aria-labelledby="camera-preview-heading" className="space-y-3">
@@ -772,7 +771,7 @@ export function CameraPreview() {
                     A câmera está desligada
                   </p>
                   <p className="text-sm text-zinc-500">
-                    {displayState.status === 'unavailable'
+                    {cameraState.status === 'unavailable'
                       ? 'Verifique o navegador, a permissão e a conexão segura antes de tentar novamente.'
                       : 'Selecione "Iniciar câmera" para solicitar permissão.'}
                   </p>
@@ -784,7 +783,11 @@ export function CameraPreview() {
           <video
             ref={videoRef}
             autoPlay
-            className={`size-full object-cover ${isPreviewVisible ? 'block' : 'hidden'}`}
+            className={cn(
+              'size-full object-cover',
+              isPreviewVisible ? 'block' : 'hidden',
+              isMirrored && '[transform:scaleX(-1)]'
+            )}
             muted
             playsInline
           />
@@ -818,11 +821,20 @@ export function CameraPreview() {
         ) : null}
       </section>
 
+      {isPreviewVisible ? (
+        <CameraMirrorControl
+          checked={isMirrored}
+          onCheckedChange={(checked) => {
+            setIsMirrored(checked === true);
+          }}
+        />
+      ) : null}
+
       {showDeviceSelector ? (
         <CameraDeviceSelect
           activeDeviceId={activeDeviceId}
           devices={devices}
-          disabled={displayState.status === 'paused'}
+          disabled={cameraState.status === 'paused'}
           isRefreshingList={isRefreshingList}
           isSwitching={isSwitching}
           listError={deviceListError}
@@ -834,7 +846,7 @@ export function CameraPreview() {
         />
       ) : null}
 
-      {displayState.status === 'paused' ? (
+      {cameraState.status === 'paused' ? (
         <p className="text-sm text-zinc-400">
           Retome a câmera antes de trocar de dispositivo.
         </p>

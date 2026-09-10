@@ -42,6 +42,8 @@ O **estado apresentado** (`CameraStatusPresentation`) contém apenas dados de in
 
 Textos da interface **não** são usados como estado interno. A conversão ocorre em `resolveCameraStatusPresentation()`.
 
+O primeiro render (servidor e cliente) utiliza o estado técnico `idle` sem consultar `window`, `navigator` ou permissões. Contexto seguro e disponibilidade de `mediaDevices` são verificados somente na ação **Iniciar câmera**.
+
 ## State mapping
 
 Entradas da função pura:

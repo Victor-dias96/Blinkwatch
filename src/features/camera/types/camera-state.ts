@@ -1,9 +1,4 @@
-import {
-  type CameraPresentationError,
-  createPreActivationError,
-  isMediaDevicesApiAvailable,
-  isSecureBrowserContext,
-} from '@/features/camera/errors/camera-error';
+import type { CameraPresentationError } from '@/features/camera/errors/camera-error';
 
 export type CameraStatus =
   | 'idle'
@@ -26,24 +21,4 @@ export function createCameraState(
   error: CameraPresentationError | null = null
 ): CameraState {
   return { status, error };
-}
-
-export function resolveDisplayCameraState(state: CameraState): CameraState {
-  if (state.status === 'idle' || state.status === 'requesting') {
-    if (!isSecureBrowserContext()) {
-      return createCameraState(
-        'unavailable',
-        createPreActivationError('insecure-context')
-      );
-    }
-
-    if (!isMediaDevicesApiAvailable()) {
-      return createCameraState(
-        'unavailable',
-        createPreActivationError('unsupported')
-      );
-    }
-  }
-
-  return state;
 }

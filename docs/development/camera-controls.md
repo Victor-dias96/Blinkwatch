@@ -128,14 +128,14 @@ restarting ──(falha)──► error | unavailable | denied
 
 ## Allowed controls by state
 
-| Estado       | Controles disponíveis                                      |
-| ------------ | ---------------------------------------------------------- |
-| `idle`       | Iniciar câmera, Voltar ao consentimento, Retry (se erro)   |
-| `requesting` | Aguardando permissão (ações principais desabilitadas)      |
-| `active`     | Pausar, Reiniciar, Encerrar câmera, seletor de dispositivo |
-| `paused`     | Retomar, Reiniciar, Encerrar câmera (seletor desabilitado) |
-| `restarting` | Reiniciando câmera (controles incompatíveis desabilitados) |
-| `switching`  | Trocando câmera (controles incompatíveis desabilitados)    |
+| Estado       | Controles disponíveis                                                           |
+| ------------ | ------------------------------------------------------------------------------- |
+| `idle`       | Iniciar câmera, Voltar ao consentimento, Retry (se erro)                        |
+| `requesting` | Aguardando permissão (ações principais desabilitadas)                           |
+| `active`     | Pausar, Reiniciar, Encerrar câmera, seletor de dispositivo, **Espelhar prévia** |
+| `paused`     | Retomar, Reiniciar, Encerrar câmera (seletor e espelhamento ocultos)            |
+| `restarting` | Reiniciando câmera (controles incompatíveis desabilitados)                      |
+| `switching`  | Trocando câmera (controles incompatíveis desabilitados)                         |
 
 ## Concurrency protection
 
@@ -185,6 +185,13 @@ restarting ──(falha)──► error | unavailable | denied
 - Indicador físico da câmera pode ou não desligar com `enabled = false` (varia por SO/navegador)
 - `track.stop()` não dispara evento `ended` (comportamento documentado no MDN)
 - Permissões e labels de dispositivo variam entre navegadores
+
+## Mirror preview control
+
+- Controle **Espelhar prévia** (`CameraMirrorControl`) — checkbox acessível que alterna espelhamento horizontal **somente visual** da prévia.
+- Disponível em `active` e `switching`; oculto em pausa e quando a câmera está desligada.
+- Não chama `getUserMedia`, não reinicia tracks e não persiste preferência.
+- Detalhes completos em [`camera-mirroring.md`](camera-mirroring.md).
 
 ## Future integration with visual processing
 
