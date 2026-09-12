@@ -27,8 +27,9 @@ export default function PlayCameraPage() {
         </p>
 
         <p className="mt-4 leading-relaxed text-zinc-400">
-          Visão computacional e detecção de eventos ainda não estão ativas.
-          Apenas a prévia local será exibida após a permissão do navegador.
+          Visão computacional e detecção de eventos ainda não estão ativas. Após
+          iniciar a câmera, você pode carregar o modelo local para validar a
+          infraestrutura — nenhum frame é analisado nesta etapa.
         </p>
 
         <CameraPreview />

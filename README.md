@@ -10,10 +10,11 @@ O Blinkwatch **complementa** a sessão de RPG; **não substitui** o sistema de j
 
 ## Estado atual
 
-> **Aviso:** a Milestone 1 (fundação) foi concluída; a **Milestone 2** (câmera e prova de conceito visual) está em andamento. A tela inicial pública e a rota de preparação `/play/setup` já existem.
+> **Aviso:** a Milestone 1 (fundação) foi concluída; a **Milestone 2** (câmera) está entregue nesta fase; a **Milestone 3** (visão computacional) foi **iniciada** com a infraestrutura de carregamento do MediaPipe Face Landmarker.
 >
 > - Acesso à câmera (prévia local): **implementado**
-> - Detecção de piscadas: **não implementado**
+> - Infraestrutura de carregamento do Face Landmarker: **implementada**
+> - Detecção de rostos, olhos ou piscadas: **não implementado**
 > - Multiplayer / salas em tempo real: **não implementado**
 > - Painel do mestre: **não implementado**
 
@@ -57,6 +58,7 @@ Tecnologias **presentes** no repositório (versões em [`package.json`](package.
 - shadcn/ui (inicializado; componentes adicionados sob demanda)
 - Lucide React
 - Zod
+- MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) — infraestrutura de carregamento do Face Landmarker; **detecção ainda não implementada**
 - ESLint
 - Prettier
 - Husky
@@ -66,7 +68,7 @@ Tecnologias **presentes** no repositório (versões em [`package.json`](package.
 - Vitest
 - React Testing Library
 
-**Não instalados** nesta fase (mencionados apenas como possibilidades futuras): MediaPipe, Socket.IO, Prisma, PostgreSQL, Playwright, servidores MCP.
+**Não instalados** nesta fase (mencionados apenas como possibilidades futuras): Socket.IO, Prisma, PostgreSQL, Playwright, servidores MCP.
 
 ## Requisitos
 
@@ -142,13 +144,14 @@ Programação assistida por agentes deve seguir [`AGENTS.md`](AGENTS.md) na raiz
 
 Índice completo: [`docs/README.md`](docs/README.md).
 
-| Tópico                | Documento                                                                                  |
-| --------------------- | ------------------------------------------------------------------------------------------ |
-| Estrutura do projeto  | [`docs/architecture/project-structure.md`](docs/architecture/project-structure.md)         |
-| Estado da Milestone 1 | [`docs/project-status.md`](docs/project-status.md)                                         |
-| Variáveis de ambiente | [`docs/development/environment-variables.md`](docs/development/environment-variables.md)   |
-| Integração contínua   | [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md) |
-| Estratégia MCP        | [`docs/development/mcp-strategy.md`](docs/development/mcp-strategy.md)                     |
+| Tópico                | Documento                                                                                            |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| Estrutura do projeto  | [`docs/architecture/project-structure.md`](docs/architecture/project-structure.md)                   |
+| Estado da Milestone 1 | [`docs/project-status.md`](docs/project-status.md)                                                   |
+| Variáveis de ambiente | [`docs/development/environment-variables.md`](docs/development/environment-variables.md)             |
+| Integração contínua   | [`docs/development/continuous-integration.md`](docs/development/continuous-integration.md)           |
+| Estratégia MCP        | [`docs/development/mcp-strategy.md`](docs/development/mcp-strategy.md)                               |
+| Face Landmarker       | [`docs/development/face-landmarker-integration.md`](docs/development/face-landmarker-integration.md) |
 
 ## Como contribuir
 
@@ -163,16 +166,19 @@ Diretrizes de arquitetura incremental: [`docs/architecture/project-structure.md`
 
 ## Scripts disponíveis
 
-| Comando                | Descrição                       |
-| ---------------------- | ------------------------------- |
-| `npm run dev`          | Servidor de desenvolvimento     |
-| `npm run build`        | Build de produção               |
-| `npm run start`        | Executa a build de produção     |
-| `npm run format`       | Formata com Prettier            |
-| `npm run format:check` | Verifica formatação             |
-| `npm run lint`         | Executa ESLint                  |
-| `npm run lint:fix`     | Correções seguras do ESLint     |
-| `npm run typecheck`    | Verificação de tipos TypeScript |
-| `npm test`             | Testes Vitest (jsdom)           |
-| `npm run test:watch`   | Testes Vitest em modo watch     |
-| `npm run commitlint`   | Valida mensagem de commit       |
+| Comando                       | Descrição                                         |
+| ----------------------------- | ------------------------------------------------- |
+| `npm run dev`                 | Servidor de desenvolvimento                       |
+| `npm run build`               | Build de produção                                 |
+| `npm run start`               | Executa a build de produção                       |
+| `npm run format`              | Formata com Prettier                              |
+| `npm run format:check`        | Verifica formatação                               |
+| `npm run lint`                | Executa ESLint                                    |
+| `npm run lint:fix`            | Correções seguras do ESLint                       |
+| `npm run typecheck`           | Verificação de tipos TypeScript                   |
+| `npm test`                    | Testes Vitest (jsdom)                             |
+| `npm run test:run`            | Alias de `npm test`                               |
+| `npm run test:camera`         | Testes da feature de câmera                       |
+| `npm run test:watch`          | Testes Vitest em modo watch                       |
+| `npm run copy:mediapipe-wasm` | Copia WASM do pacote para `public/mediapipe/wasm` |
+| `npm run commitlint`          | Valida mensagem de commit                         |

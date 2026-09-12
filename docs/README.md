@@ -20,17 +20,18 @@ Documentação técnica do Blinkwatch. Use este índice para localizar o materia
 
 ## Desenvolvimento
 
-| Documento                                                                        | Idioma | Descrição                                                        |
-| -------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------- |
-| [`development/environment-variables.md`](development/environment-variables.md)   | EN     | Módulos tipados de ambiente, `.env.local`, regras `NEXT_PUBLIC_` |
-| [`development/continuous-integration.md`](development/continuous-integration.md) | EN     | Workflow GitHub Actions, triggers, comandos e reprodução local   |
-| [`development/mcp-strategy.md`](development/mcp-strategy.md)                     | EN     | Política opcional de MCP para agentes de programação             |
-| [`development/camera-controls.md`](development/camera-controls.md)               | PT     | Iniciar, pausar, retomar, reiniciar e encerrar                   |
-| [`development/camera-lifecycle.md`](development/camera-lifecycle.md)             | PT     | Propriedade do stream e encerramento seguro                      |
-| [`development/camera-errors.md`](development/camera-errors.md)                   | PT     | Classificação e recuperação de falhas da câmera                  |
-| [`development/camera-status.md`](development/camera-status.md)                   | PT     | Indicador de estado técnico vs apresentação                      |
-| [`development/camera-mirroring.md`](development/camera-mirroring.md)             | PT     | Espelhamento visual da prévia                                    |
-| [`.env.example`](../.env.example)                                                | EN     | Formato comentado de variáveis (sem credenciais reais)           |
+| Documento                                                                                  | Idioma | Descrição                                                        |
+| ------------------------------------------------------------------------------------------ | ------ | ---------------------------------------------------------------- |
+| [`development/environment-variables.md`](development/environment-variables.md)             | EN     | Módulos tipados de ambiente, `.env.local`, regras `NEXT_PUBLIC_` |
+| [`development/continuous-integration.md`](development/continuous-integration.md)           | EN     | Workflow GitHub Actions, triggers, comandos e reprodução local   |
+| [`development/mcp-strategy.md`](development/mcp-strategy.md)                               | EN     | Política opcional de MCP para agentes de programação             |
+| [`development/camera-controls.md`](development/camera-controls.md)                         | PT     | Iniciar, pausar, retomar, reiniciar e encerrar                   |
+| [`development/camera-lifecycle.md`](development/camera-lifecycle.md)                       | PT     | Propriedade do stream e encerramento seguro                      |
+| [`development/camera-errors.md`](development/camera-errors.md)                             | PT     | Classificação e recuperação de falhas da câmera                  |
+| [`development/camera-status.md`](development/camera-status.md)                             | PT     | Indicador de estado técnico vs apresentação                      |
+| [`development/camera-mirroring.md`](development/camera-mirroring.md)                       | PT     | Espelhamento visual da prévia                                    |
+| [`development/face-landmarker-integration.md`](development/face-landmarker-integration.md) | EN     | Infraestrutura de carregamento do MediaPipe Face Landmarker      |
+| [`.env.example`](../.env.example)                                                          | EN     | Formato comentado de variáveis (sem credenciais reais)           |
 
 ## Instruções para agentes de programação
 
@@ -75,5 +76,5 @@ Os itens abaixo **não existem** nesta fase e serão introduzidos por issues fut
 
 - `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`
 - Arquivo de licença (`LICENSE`)
-- Documentação de API, deploy ou MediaPipe
+- Documentação de API ou deploy
 - ADRs em `docs/decisions/` (diretório ainda não criado)

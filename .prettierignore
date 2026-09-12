@@ -8,3 +8,7 @@ out
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+
+# MediaPipe binary assets
+public/models/**
+public/mediapipe/wasm/**

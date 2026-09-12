@@ -38,10 +38,11 @@ Most product functionality is **planned and not yet implemented**. Work incremen
 - Camera consent, local preview, device selection, lifecycle controls, and error handling
 - Vitest and React Testing Library for deterministic camera-module tests
 - Test directory with shared media mocks at [`tests/README.md`](tests/README.md)
+- MediaPipe Tasks Vision Face Landmarker **loading** adapter (`src/infrastructure/mediapipe`), local model, and explicit diagnostic action — **no frame processing**
 
 ### Not implemented yet
 
-- MediaPipe integration
+- MediaPipe frame processing (`detectForVideo`)
 - Face tracking
 - Eye tracking
 - Blink detection
@@ -50,7 +51,7 @@ Most product functionality is **planned and not yet implemented**. Work incremen
 - Master dashboard
 - Database persistence
 - Routes: `master`, `room`, `api`
-- Layers: `src/domain/`, `src/infrastructure/`, `src/server/` (partially planned)
+- Layers: `src/domain/`, `src/server/` (`src/infrastructure/mediapipe` exists for Face Landmarker loading only)
 - ESLint architectural boundary enforcement
 - Playwright or other E2E runners
 
@@ -66,6 +67,7 @@ Documented technologies are those currently present in `package.json` and projec
 - Tailwind CSS
 - shadcn/ui (initialized; components added on demand)
 - Lucide React
+- MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) — Face Landmarker loading only
 
 ### Quality and Git workflow
 
@@ -83,7 +85,6 @@ Documented technologies are those currently present in `package.json` and projec
 
 Do not add or assume these unless the current issue explicitly requires them:
 
-- MediaPipe
 - Socket.IO
 - Prisma
 - PostgreSQL
@@ -367,7 +368,12 @@ npm run typecheck    # TypeScript check (tsc --noEmit)
 
 # Tests
 npm test             # Vitest once (jsdom, no camera hardware)
+npm run test:run     # alias of npm test
+npm run test:camera  # Vitest for src/features/camera
 npm run test:watch   # Vitest in watch mode
+
+# MediaPipe assets
+npm run copy:mediapipe-wasm  # copy WASM from the npm package to public/mediapipe/wasm
 
 # Git hooks (manual)
 npm run commitlint   # validate a commit message (see README for examples)

@@ -118,7 +118,7 @@ A liberação apenas chama `stop()` e desassocia o elemento de vídeo. Nenhum fr
 
 ## Future visual processing
 
-Quando MediaPipe for integrado, o encerramento definitivo deverá também cancelar animation frames, workers e loops de análise. Pausa deverá interromper o pipeline sem necessariamente chamar `stop()`. Essa integração **não** existe nesta issue.
+Quando MediaPipe for usado para análise, o encerramento definitivo também deverá cancelar animation frames, workers e loops de análise. Pausa deverá interromper o pipeline sem necessariamente chamar `close()` na task. Nesta issue o Face Landmarker **é descartado** ao encerrar a câmera ou desmontar o controlador, e **permanece carregado** durante pausa, troca de dispositivo e reinício. Nenhum frame é processado.
 
 ## Fontes consultadas
 

@@ -2,7 +2,7 @@
 
 Este documento registra o que foi entregue em cada milestone e o que permanece fora de escopo. Ele complementa o [`README.md`](../README.md) com detalhes verificáveis contra o repositório.
 
-**Última revisão:** 2026-09-10
+**Última revisão:** 2026-09-12
 
 ## Milestone 1 — Fundação (concluída)
 
@@ -59,14 +59,33 @@ O **indicador de estado** separa o estado técnico da apresentação visual (`re
 
 O **espelhamento visual da prévia** inverte horizontalmente somente a apresentação do `<video>` via CSS (`[transform:scaleX(-1)]`, equivalente a `scaleX(-1)`). Inicia **ativado por padrão** (`isMirrored = true`); o participante pode ativar ou desativar com **Espelhar prévia**. A preferência permanece somente na memória da rota — troca de dispositivo, reinício, pausa e retomada preservam o valor; encerrar e iniciar novamente na mesma rota também preserva; sair de `/play/camera` descarta o estado. Pausa não captura frame; o stream original não é alterado. Detalhes em [`development/camera-mirroring.md`](development/camera-mirroring.md).
 
-MediaPipe ainda não foi integrado; nenhuma detecção visual foi implementada.
-
 Os **testes automatizados** do módulo de câmera usam Vitest e React Testing Library com mocks tipados de `getUserMedia`, tracks e dispositivos. Nenhum teste depende de câmera física. Ver [`tests/README.md`](../tests/README.md).
 
-### Ainda não implementado na Milestone 2
+## Milestone 3 — Visão computacional (iniciada)
 
-- Integração com MediaPipe
-- Rastreamento facial ou ocular
+### Objetivo
+
+Introduzir o processamento visual local no navegador, começando pela infraestrutura de carregamento do MediaPipe Face Landmarker, sem analisar frames nesta etapa.
+
+### Entregue nesta fase
+
+| Item                                     | Estado       | Referência                                                         |
+| ---------------------------------------- | ------------ | ------------------------------------------------------------------ |
+| Pacote MediaPipe Tasks Vision            | Implementado | `@mediapipe/tasks-vision@1.0.1`                                    |
+| Modelo Face Landmarker oficial           | Implementado | `public/models/face-landmarker.task`                               |
+| Recursos WASM locais                     | Implementado | `public/mediapipe/wasm/`                                           |
+| Adaptador isolado                        | Implementado | `src/infrastructure/mediapipe/`                                    |
+| Carregamento explícito na UI da câmera   | Implementado | `FaceLandmarkerDiagnostics`, ação **Preparar rastreamento facial** |
+| Descarte da instância                    | Implementado | `dispose()` → `close()` no encerramento da câmera e na desmontagem |
+| Testes com mocks (sem modelo/WASM reais) | Implementado | `face-landmarker-adapter.test.ts`, testes de diagnóstico da câmera |
+
+Nenhum frame da câmera é processado. Nenhum rosto é detectado. Nenhum olho é rastreado. Nenhuma piscada é detectada. `detect` e `detectForVideo` não são chamados. Detalhes em [`development/face-landmarker-integration.md`](development/face-landmarker-integration.md).
+
+### Ainda não implementado na Milestone 3
+
+- Processamento de frames (`detectForVideo`)
+- Desenho de landmarks
+- Rastreamento ocular
 - Detecção de piscadas e calibração do jogador
 
 ## Fora de escopo (visão de produto)
@@ -89,8 +108,8 @@ Ao executar `npm run dev` e acessar [http://localhost:3000](http://localhost:300
 
 1. A **página inicial** apresenta a proposta do Blinkwatch, um resumo de privacidade e a ação **Iniciar experiência**.
 2. A ação leva para **`/play/setup`**, uma etapa de consentimento com explicações sobre uso futuro da câmera, checkbox explícito e botão **Continuar** (desabilitado até o aceite).
-3. Após marcar o consentimento e continuar, o participante chega a **`/play/camera`**, onde pode iniciar a câmera explicitamente, pausar, retomar, reiniciar, encerrar, visualizar a prévia local e escolher entre câmeras disponíveis.
-4. **Não há** processamento de visão computacional, detecção visual, análise facial, transmissão de vídeo ou multiplayer.
+3. Após marcar o consentimento e continuar, o participante chega a **`/play/camera`**, onde pode iniciar a câmera explicitamente, pausar, retomar, reiniciar, encerrar, visualizar a prévia local, escolher entre câmeras disponíveis e, com a câmera ativa, **preparar o modelo local** de rastreamento facial.
+4. **Não há** análise de frames, detecção visual, transmissão de vídeo ou multiplayer. O carregamento do Face Landmarker apenas inicializa o modelo no navegador.
 
 ## Próximas fases (planejamento)
 

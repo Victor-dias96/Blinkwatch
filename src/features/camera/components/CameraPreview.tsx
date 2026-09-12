@@ -9,6 +9,7 @@ import { CameraDeviceSelect } from '@/features/camera/components/CameraDeviceSel
 import { CameraErrorMessage } from '@/features/camera/components/CameraErrorMessage';
 import { CameraMirrorControl } from '@/features/camera/components/CameraMirrorControl';
 import { CameraStatus } from '@/features/camera/components/CameraStatus';
+import { FaceLandmarkerDiagnostics } from '@/features/camera/components/FaceLandmarkerDiagnostics';
 import {
   type CameraPresentationError,
   classifyGetUserMediaError,
@@ -24,6 +25,7 @@ import {
   isMissingDeviceError,
   isSecureBrowserContext,
 } from '@/features/camera/errors/camera-error';
+import { useFaceLandmarkerPreparation } from '@/features/camera/hooks/useFaceLandmarkerPreparation';
 import {
   type CameraDeviceOption,
   enumerateVideoInputDevices,
@@ -75,6 +77,11 @@ export function CameraPreview() {
   const [hasValidActiveTrack, setHasValidActiveTrack] = useState(false);
   const [hasValidPausedTrack, setHasValidPausedTrack] = useState(false);
   const [isMirrored, setIsMirrored] = useState(true);
+  const {
+    state: faceLandmarkerState,
+    initialize: initializeFaceLandmarker,
+    dispose: disposeFaceLandmarker,
+  } = useFaceLandmarkerPreparation();
 
   const canApplyOperationResult = useCallback((generation: number) => {
     return (
@@ -196,11 +203,17 @@ export function CameraPreview() {
     isRestartingRef.current = false;
     isRequestingRef.current = false;
     stopActiveStream();
+    disposeFaceLandmarker();
     resetDeviceState();
 
     const error = createDeviceDisconnectedError();
     setCameraState(createCameraState('idle', error));
-  }, [invalidateOperations, resetDeviceState, stopActiveStream]);
+  }, [
+    disposeFaceLandmarker,
+    invalidateOperations,
+    resetDeviceState,
+    stopActiveStream,
+  ]);
 
   const attachTrackEndedListener = useCallback(
     (stream: MediaStream) => {
@@ -796,6 +809,7 @@ export function CameraPreview() {
     isSwitchingRef.current = false;
     isRestartingRef.current = false;
     stopActiveStream();
+    disposeFaceLandmarker();
     resetDeviceState();
 
     if (!isMountedRef.current) {
@@ -847,6 +861,12 @@ export function CameraPreview() {
   const canResume = cameraState.status === 'paused';
   const canRestart = hasActiveOrPausedStream;
   const canStop = hasActiveOrPausedStream;
+  const showFaceLandmarkerDiagnostics = hasActiveOrPausedStream;
+  const canPrepareFaceLandmarker =
+    cameraState.status === 'active' &&
+    hasValidActiveTrack &&
+    faceLandmarkerState.status !== 'loading' &&
+    faceLandmarkerState.status !== 'ready';
 
   return (
     <div className="mt-8 space-y-6">
@@ -951,6 +971,16 @@ export function CameraPreview() {
           />
         ) : null}
       </section>
+
+      {showFaceLandmarkerDiagnostics ? (
+        <FaceLandmarkerDiagnostics
+          canPrepare={canPrepareFaceLandmarker}
+          state={faceLandmarkerState}
+          onPrepare={() => {
+            void initializeFaceLandmarker();
+          }}
+        />
+      ) : null}
 
       {isPreviewVisible ? (
         <CameraMirrorControl

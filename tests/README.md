@@ -48,6 +48,8 @@ Ainda não há suítes nesses diretórios. Jornadas E2E (Playwright ou equivalen
 
 O Vitest inclui somente `**/*.test.ts` e `**/*.test.tsx`.
 
+O módulo de câmera e o adaptador MediaPipe usam Vitest e React Testing Library. Os testes de visão mockam `FilesetResolver` e `FaceLandmarker.createFromOptions`; eles não carregam o modelo real nem executam WASM.
+
 ## Módulo de câmera
 
 Os testes atuais cobrem o estado inicial, ativação explícita, constraints sem áudio, permissão aceita ou negada, API ausente, contexto inseguro, prévia local, pausa, retomada, reinício, encerramento, cleanup na desmontagem, respostas tardias, troca de câmera, falha de troca, enumeração, desconexão da track, indicador de estado, espelhamento e estado inicial determinístico (sem hidratação dependente de `navigator`).

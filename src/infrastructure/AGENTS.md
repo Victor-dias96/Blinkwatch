@@ -29,20 +29,17 @@ Create infrastructure modules only when an issue requires real implementation.
 
 ## MediaPipe Preparation
 
-When MediaPipe is introduced:
+`@mediapipe/tasks-vision` is installed. Face Landmarker **loading** lives in `src/infrastructure/mediapipe`. Frame processing, landmark interpretation, and blink detection are **not** implemented.
 
-- Load vision models through a dedicated adapter.
-- Keep model paths configurable.
-- Do not initialize models during server rendering.
-- Do not send frames to external services.
-- Declare browser compatibility assumptions.
-- Expose normalized project-owned results.
-- Handle loading, ready, failed, and disposed states.
-- Release workers and resources when appropriate.
-- Separate landmark extraction from gameplay interpretation.
-- Do not couple MediaPipe confidence directly to narrative consequences.
-
-MediaPipe is **not** installed yet.
+- Load vision models only through the dedicated adapter. Features must not import `FilesetResolver`, `FaceLandmarker`, or other SDK types.
+- Keep model and WASM paths in `face-landmarker-config.ts`.
+- Initialize only in the browser after an explicit user action. Do not initialize during SSR, module import, or the first render.
+- Import the SDK dynamically inside `initialize()`. Never import it from a Server Component.
+- Process vision locally in the browser. Do not send frames, images, or facial data to external services.
+- Expose Blinkwatch-owned loading states (`idle`, `loading`, `ready`, `failed`, `disposed`). Do not leak SDK objects.
+- Dispose with the official `close()` method. Dispose is idempotent. A disposed instance must not be reused; `initialize()` after `dispose()` creates a new task.
+- Do not call `detect`, `detectForVideo`, or any inference API until a future issue requires frame processing.
+- Do not couple MediaPipe confidence to narrative consequences.
 
 ## Database Preparation
 

@@ -12,12 +12,16 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:run": "vitest run",
+    "test:camera": "vitest run src/features/camera",
     "test:watch": "vitest",
+    "copy:mediapipe-wasm": "node scripts/copy-mediapipe-wasm.mjs",
     "commitlint": "commitlint",
     "prepare": "husky"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@mediapipe/tasks-vision": "^1.0.1",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.6",
     "lucide-react": "^1.43.0",

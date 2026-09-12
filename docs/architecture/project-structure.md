@@ -102,22 +102,19 @@ blinkwatch/
 ├── public/
 │   ├── file.svg
 │   ├── globe.svg
+│   ├── mediapipe/
+│   │   └── wasm/
+│   ├── models/
+│   │   └── face-landmarker.task
 │   ├── next.svg
 │   ├── vercel.svg
 │   └── window.svg
 ├── src/
 │   ├── app/
-│   │   ├── favicon.ico
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
+│   ├── features/
+│   ├── infrastructure/
+│   │   └── mediapipe/
 │   └── shared/
-│       ├── config/
-│       │   └── env/
-│       │       ├── client.ts
-│       │       └── server.ts
-│       └── lib/
-│           └── utils.ts
 ├── tests/
 │   └── README.md
 ├── components.json
@@ -155,7 +152,8 @@ Arquivos estáticos servidos diretamente pelo Next.js. Subdiretórios planejados
 
 - `audio/` — efeitos sonoros e trilhas;
 - `icons/` — ícones e assets visuais estáticos;
-- `models/` — modelos de ML (ex.: MediaPipe) quando forem adicionados.
+- `models/` — modelo Face Landmarker em `public/models/face-landmarker.task`;
+- `mediapipe/wasm/` — recursos WASM do Tasks Vision copiados do pacote npm.
 
 ### `src/app/`
 
@@ -335,12 +333,11 @@ Nome do arquivo associado com sufixo adequado:
 
 - Rotas `play`, `master`, `room` e `api`;
 - Todas as features listadas em `src/features/`;
-- Camadas `domain`, `infrastructure` e `server`;
-- Subdiretórios de `shared` além de `lib/` (components, hooks, schemas, types, utils);
-- Subdiretórios de `public/` (audio, icons, models);
-- Subdiretórios de `docs/` além de `architecture/` e `development/` (decisions, privacy, protocols, testing); arquivos de entrada `docs/README.md` e `docs/project-status.md` **existem** nesta fase;
+- Camada `domain` e `server`;
+- Subdiretórios de `public/` ainda não usados (`audio`, `icons`);
+- Subdiretórios de `docs/` além de `architecture/` e `development/` (decisions, privacy, protocols, testing);
 - Subdiretórios de `tests/` além de `mocks/` e do README;
-- MediaPipe, detecção de piscadas, multiplayer, persistência;
+- Processamento MediaPipe de frames, detecção de piscadas, multiplayer, persistência;
 - Playwright ou outros runners E2E;
 - Regras ESLint de fronteiras arquiteturais.
 
